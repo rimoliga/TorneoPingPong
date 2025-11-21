@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torneo sin nombre - Live</title>
+    <title>Torneo - Live</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏓</text></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,12 +14,11 @@
 
         body {
             font-family: 'Roboto', sans-serif;
-            /* Nuevo fondo más oscuro y azulado (Slate theme) */
             background-color: #0f172a; 
             background-image: radial-gradient(#1e293b 15%, transparent 16%), radial-gradient(#1e293b 15%, transparent 16%);
             background-size: 60px 60px;
             background-position: 0 0, 30px 30px;
-            color: #e2e8f0; /* Texto claro más neutro */
+            color: #e2e8f0;
             overscroll-behavior-y: none;
             user-select: none;
         }
@@ -27,10 +26,9 @@
         .retro-font { font-family: 'Press Start 2P', cursive; }
         
         .glass-panel {
-            /* Paneles más neutros y oscuros con tinte cian sutil */
-            background: rgba(30, 41, 59, 0.7); /* Slate-800 con transparencia */
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(100, 116, 139, 0.2); /* Borde sutil */
+            border: 1px solid rgba(100, 116, 139, 0.2);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -70,21 +68,20 @@
         }
         
         .badge-status { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-        /* Nuevos colores de estado */
-        .status-new { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); } /* Azul */
-        .status-live { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); animation: pulse-border 2s infinite; } /* Amarillo/Naranja */
-        .status-done { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); } /* Verde (Completion) */
+        .status-new { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); } 
+        .status-live { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); animation: pulse-border 2s infinite; }
+        .status-done { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); } 
         @keyframes pulse-border { 0% { border-color: rgba(245, 158, 11, 0.4); } 50% { border-color: rgba(245, 158, 11, 1); } 100% { border-color: rgba(245, 158, 11, 0.4); } }
 
         .featured-card {
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%); /* Darker gradient */
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
             border: 1px solid #fcd34d;
             box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
         }
 
         #varOverlay {
             background: rgba(0, 0, 0, 0.85);
-            border-bottom: 4px solid #3b82f6; /* Blue border for VAR */
+            border-bottom: 4px solid #3b82f6; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         .scanline {
@@ -97,27 +94,24 @@
         @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
         .me-highlight {
-            color: #fcd34d !important; /* Yellow text */
+            color: #fcd34d !important; 
             font-weight: bold;
             text-shadow: 0 0 10px rgba(252, 211, 77, 0.5);
         }
         
-        .bracket-medal { font-size: 0.6em; margin-left: 2px; filter: drop-shadow(0 0 2px gold); }
+        .bracket-medal { font-size: 0.8em; margin-left: 4px; filter: drop-shadow(0 0 2px gold); }
         .locked-identity { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
         .clickable-name:hover { color: #fcd34d; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-2 md:p-4 overflow-x-hidden transition-colors duration-500">
 
-    <!-- Version Badge: Blue theme -->
     <div class="fixed top-0 right-0 bg-blue-950/80 backdrop-blur text-blue-300 text-[10px] px-2 py-1 z-50 font-mono border-b border-l border-blue-500/30 rounded-bl-lg flex gap-2 items-center">
-        <span>v11.3</span>
         <button onclick="toggleFullScreen()" class="hover:text-white"><i class="fas fa-expand"></i></button>
     </div>
 
     <header class="w-full max-w-3xl text-center mb-4 mt-2 relative flex flex-col items-center">
         <div class="flex justify-center items-center gap-3 mb-2 w-full relative">
-            <!-- Profile Button: Blue theme -->
             <button id="profileBtn" onclick="showProfileModal()" class="hidden absolute left-0 top-1/2 transform -translate-y-1/2 bg-slate-800/80 px-2 py-1 rounded-lg border border-blue-500/30 hover:bg-slate-700 transition-colors z-20">
                 <div class="flex flex-col items-center">
                     <div id="headerAvatar" class="w-6 h-6 mb-[-4px]"></div>
@@ -135,7 +129,6 @@
             <i class="fas fa-wifi"></i> Conectando...
         </div>
         
-        <!-- Room Code Display: Slate/Cyan theme -->
         <div id="roomDisplay" class="hidden mt-2 group cursor-pointer transition-all active:scale-95" onclick="copyRoomCode()">
             <div class="bg-slate-800/80 px-4 py-1 rounded-full border border-cyan-500/50 inline-flex items-center gap-2">
                 <span class="text-cyan-400 text-xs uppercase tracking-wider">SALA:</span>
@@ -147,13 +140,17 @@
         <div id="welcomeMsg" class="hidden text-cyan-300 font-bold text-sm mt-1 animate-fade-in">Hola, <span id="userIdName" class="text-yellow-300">Jugador</span> 👋</div>
     </header>
 
-    <!-- 1. LOBBY (Updated Colors) -->
+    <!-- 1. LOBBY -->
     <div id="lobbySection" class="w-full max-w-sm glass-panel rounded-xl p-6 mb-8 text-center transition-all duration-500">
         <h2 class="text-xl font-bold text-white mb-4">🏆 Configurar Torneo</h2>
         <div class="space-y-4 mb-6 text-left">
             <div>
+                <label class="text-xs text-yellow-400 ml-1 uppercase font-bold">Tu Nombre (Creador)</label>
+                <input type="text" id="creatorNameInput" placeholder="Ej: Juan" maxlength="15" class="w-full bg-slate-900/50 border border-yellow-600 rounded-lg px-3 py-2 text-white font-bold placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-center text-lg">
+            </div>
+
+            <div>
                 <label class="text-xs text-cyan-400 ml-1 uppercase font-bold">Nombre del Torneo</label>
-                <!-- Input style: Dark slate background -->
                 <input type="text" id="tourneyNameInput" value="Torneo sin nombre 🏆" maxlength="25" class="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white font-bold placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 text-center text-lg">
             </div>
             <div class="flex gap-4">
@@ -166,14 +163,12 @@
                 </div>
             </div>
         </div>
-        <!-- Primary Action: Orange (Kept for contrast) -->
         <button onclick="createRoom()" class="w-full bg-orange-500 hover:bg-orange-400 text-white font-bold py-3 px-4 rounded-lg shadow-lg mb-6 transition-transform active:scale-95 flex items-center justify-center gap-2"><i class="fas fa-plus-circle"></i> CREAR SALA</button>
         
         <div class="relative flex py-2 items-center"><div class="flex-grow border-t border-slate-700"></div><span class="flex-shrink-0 mx-4 text-slate-500 text-xs">O UNIRSE A UNA</span><div class="flex-grow border-t border-slate-700"></div></div>
         
         <div class="mt-4 flex gap-2">
             <input type="text" id="joinCodeInput" placeholder="CÓDIGO" maxlength="4" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2 text-white text-center font-mono uppercase placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 h-12">
-            <!-- Secondary Action: Blue -->
             <button onclick="joinRoom()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 rounded-lg transition-colors h-12">ENTRAR</button>
         </div>
         <div class="mt-6 pt-4 border-t border-slate-800/50">
@@ -181,23 +176,25 @@
         </div>
     </div>
 
-    <!-- 2. IDENTITY SELECTION (Updated Colors) -->
+    <!-- 2. IDENTITY SELECTION -->
     <div id="identitySection" class="w-full max-w-sm glass-panel rounded-xl p-6 mb-8 hidden mx-2 text-center">
         <h2 class="text-xl font-bold text-white mb-2">¿Quién eres?</h2>
         <p class="text-slate-400/70 text-xs mb-6">Selecciona tu nombre para jugar</p>
         
         <div id="adminAddPanel" class="hidden mb-4 bg-slate-900/40 p-3 rounded-lg border border-yellow-500/30">
-            <div class="text-[10px] text-yellow-400 font-bold uppercase mb-2 text-left"><i class="fas fa-crown mr-1"></i> Inscribir Participantes</div>
+            <div class="text-[10px] text-yellow-400 font-bold uppercase mb-2 text-left flex items-center gap-2">
+                <i class="fas fa-crown"></i> Panel de Organizador
+            </div>
+            <p class="text-[10px] text-slate-400 text-left mb-2 leading-tight">Inscribe a los demás participantes aquí. <span class="text-yellow-500">Tú ya estás inscrito.</span></p>
             <div class="flex gap-2 flex-col">
                 <div class="flex gap-2">
-                    <input type="text" id="adminAddInput" placeholder="Nombre..." class="w-full bg-slate-950/50 border border-slate-700 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-400">
+                    <input type="text" id="adminAddInput" placeholder="Nombre amigo..." class="w-full bg-slate-950/50 border border-slate-700 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-400">
                     <button onclick="adminQuickAdd()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-3 rounded-lg shadow"><i class="fas fa-plus"></i></button>
                 </div>
                 <input type="text" id="adminNickInput" placeholder="Apodo (Opcional)" class="w-full bg-slate-950/30 border-b border-slate-700/30 px-3 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-400">
             </div>
         </div>
 
-        <!-- Identity List Items style update in JS render function -->
         <div id="identityList" class="space-y-2 mb-6 max-h-48 overflow-y-auto"></div>
         
         <div class="relative flex py-2 items-center"><div class="flex-grow border-t border-slate-700"></div><span class="flex-shrink-0 mx-4 text-slate-500 text-xs">O SOY NUEVO</span><div class="flex-grow border-t border-slate-700"></div></div>
@@ -210,7 +207,7 @@
         </div>
     </div>
 
-    <!-- 3. SETUP SECTION (Updated Colors) -->
+    <!-- 3. SETUP SECTION -->
     <div id="setupSection" class="w-full max-w-md glass-panel rounded-xl p-4 md:p-6 mb-8 hidden mx-2">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2"><i class="fas fa-users text-cyan-400"></i> Jugadores</h2>
@@ -222,7 +219,6 @@
                 <input type="text" id="playerInput" placeholder="Agregar otro jugador..." class="w-full bg-slate-900/50 border border-slate-700 rounded-t-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400" onkeypress="handleEnter(event)">
                 <input type="text" id="playerNickInput" placeholder="Apodo (Opcional)" class="w-full bg-slate-950/50 border-x border-b border-slate-700/50 rounded-b-lg px-4 py-1 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400" onkeypress="handleEnter(event)">
             </div>
-            <!-- Add button: Blue -->
             <button onclick="addPlayer()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg h-full self-start"><i class="fas fa-plus"></i></button>
         </div>
 
@@ -233,7 +229,7 @@
         </div>
     </div>
 
-    <!-- 4. DASHBOARD SECTION (Updated Colors) -->
+    <!-- 4. DASHBOARD SECTION -->
     <div id="bracketSection" class="w-full max-w-6xl hidden flex flex-col h-[80vh]">
         <div id="featuredMatchContainer" class="w-full mb-4 hidden px-2"></div>
         <div class="flex justify-between items-center mb-4 glass-panel p-3 rounded-lg mx-2 shrink-0">
@@ -247,27 +243,22 @@
         <div id="roundsContainer" class="flex flex-row gap-4 overflow-x-auto pb-8 snap-x snap-mandatory px-4 w-full no-scrollbar h-full items-start"></div>
     </div>
 
-    <!-- MODALS -->
-    <!-- LIVE MATCH MODAL (Darker theme, distinctive player colors) -->
+    <!-- LIVE MATCH MODAL -->
     <div id="liveMatchModal" class="hidden fixed inset-0 z-[60] bg-slate-950 text-white flex flex-col">
         <div class="flex justify-between items-center p-4 bg-slate-900/50 border-b border-slate-800/50">
             <button onclick="closeLiveMatch()" class="text-slate-400 hover:text-white flex items-center gap-2"><i class="fas fa-arrow-left"></i> <span class="text-xs font-bold">VOLVER</span></button>
             <button onclick="triggerVar()" class="bg-blue-600/30 hover:bg-blue-500/50 border border-blue-500/50 text-blue-200 px-3 py-1 rounded text-xs font-bold"><i class="fas fa-tv mr-1"></i> VAR</button>
         </div>
         <div class="flex-1 flex flex-col md:flex-row relative">
-            <!-- P1 Area: Blue/Cyan theme -->
             <div id="liveAreaP1" class="flex-1 relative flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-800/30 score-btn transition-colors cursor-pointer select-none bg-slate-900/20" onclick="liveScore(1, 1)">
                 <div id="liveP1Serve" class="absolute top-4 right-4 text-white hidden"><div class="w-4 h-4 rounded-full bg-cyan-400 serve-ball"></div></div>
                 <div id="liveP1Avatar" class="transform scale-150 mb-4 pointer-events-none"></div>
-                <!-- P1 Name: Cyan -->
                 <h2 id="liveP1Name" class="text-xl md:text-3xl font-bold text-cyan-200 mb-1 pointer-events-none">Player 1</h2>
                 <div id="liveP1Nick" class="text-xs text-cyan-400/70 mb-2 font-bold uppercase tracking-wider pointer-events-none"></div>
                 <div id="liveP1Score" class="text-[8rem] md:text-[10rem] font-bold leading-none font-mono pointer-events-none text-cyan-50">0</div>
-                <!-- P1 Minus Btn -->
                 <button onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); liveScore(1, -1)" class="absolute bottom-4 left-4 w-12 h-12 rounded-full border-2 border-red-500/30 text-red-400 flex items-center justify-center hover:bg-red-500/20 bg-black/20 z-20 active:scale-90 transition-transform font-bold text-xl">-</button>
             </div>
             <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none"><div class="bg-black/50 backdrop-blur-md px-4 py-1 rounded-full border border-white/10 text-xs font-bold text-white/50">VS</div></div>
-            <!-- P2 Area: Orange/Yellow theme (kept for contrast) -->
             <div id="liveAreaP2" class="flex-1 relative flex flex-col items-center justify-center score-btn transition-colors cursor-pointer select-none bg-slate-900/20" onclick="liveScore(2, 1)">
                 <div id="liveP2Serve" class="absolute top-4 left-4 text-white hidden"><div class="w-4 h-4 rounded-full bg-yellow-400 serve-ball"></div></div>
                 <div id="liveP2Avatar" class="transform scale-150 mb-4 pointer-events-none"></div>
@@ -280,10 +271,8 @@
         <div class="bg-slate-900/90 p-4 border-t border-slate-800/50">
             <div class="text-center text-xs text-slate-400 uppercase font-bold mb-2">Predicciones del Público</div>
             <div class="flex justify-between items-center gap-2">
-                <!-- Vote buttons: Blue vs Yellow -->
                 <button id="voteBtnP1" onclick="voteFor(1)" class="bg-cyan-900/50 text-cyan-400 text-xs px-3 py-2 rounded hover:bg-cyan-700/50 border border-cyan-700/50 hidden">Votar P1</button>
                 <div class="flex-1 h-4 bg-slate-800 rounded-full overflow-hidden relative">
-                    <!-- Vote Bar: Cyan vs Yellow -->
                     <div id="barVoteP1" class="h-full bg-cyan-500 transition-all duration-500" style="width: 50%"></div>
                     <div class="absolute inset-0 flex justify-between px-2 items-center text-[9px] font-bold text-black mix-blend-overlay">
                         <span id="textVoteP1">50%</span><span id="textVoteP2">50%</span>
@@ -292,7 +281,6 @@
                 <button id="voteBtnP2" onclick="voteFor(2)" class="bg-yellow-900/50 text-yellow-400 text-xs px-3 py-2 rounded hover:bg-yellow-700/50 border border-yellow-700/50 hidden">Votar P2</button>
             </div>
         </div>
-        <!-- Finish button: Green is still good for completion -->
         <div id="liveFinishBtnContainer" class="hidden p-6 bg-slate-900/80 border-t border-slate-800/30 flex justify-center">
             <button onclick="finishLiveMatch()" class="w-full max-w-md bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl text-xl shadow-[0_0_20px_rgba(16,185,129,0.4)] animate-pulse"><i class="fas fa-check-circle mr-2"></i> FINALIZAR PARTIDO</button>
         </div>
@@ -314,44 +302,64 @@
         </div>
     </div>
 
-    <!-- PROFILE MODAL (Updated Colors) -->
+    <!-- PROFILE MODAL -->
     <div id="profileModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
         <div class="glass-panel rounded-xl w-full max-w-sm p-6 relative border border-slate-700/50">
             <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
-            <div class="flex flex-col items-center mb-4">
-                <div id="profileAvatarLarge" class="mb-2"></div>
-                <h2 id="profileName" class="text-2xl font-bold text-white">Nombre</h2>
-                <div id="profileNick" class="text-sm text-cyan-400 italic"></div>
-            </div>
-            <!-- Tabs: Blue vs Indigo theme -->
-            <div class="flex border-b border-slate-700 mb-4">
-                <button onclick="switchProfileTab('current')" id="tabCurrent" class="flex-1 py-2 text-xs font-bold text-blue-400 border-b-2 border-blue-400">TORNEO ACTUAL</button>
-                <button onclick="switchProfileTab('global')" id="tabGlobal" class="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-indigo-400 border-b-2 border-transparent">HISTORIAL</button>
-            </div>
-            <!-- Current Stats: Blue theme -->
-            <div id="statsCurrent" class="stats-view">
-                <div class="grid grid-cols-3 gap-2 mb-4">
-                    <div class="bg-slate-800/50 rounded p-2 text-center border border-blue-500/20"><div id="statPJ" class="text-xl font-bold text-white">0</div><div class="text-[10px] text-blue-300 uppercase">Jugados</div></div>
-                    <div class="bg-slate-800/50 rounded p-2 text-center border border-blue-500/20"><div id="statPG" class="text-xl font-bold text-yellow-400">0</div><div class="text-[10px] text-blue-300 uppercase">Ganados</div></div>
-                    <div class="bg-slate-800/50 rounded p-2 text-center border border-blue-500/20"><div id="statWinRate" class="text-xl font-bold text-cyan-400">0%</div><div class="text-[10px] text-blue-300 uppercase">Win Rate</div></div>
+            <div id="profileDisplay">
+                <div class="flex flex-col items-center mb-4">
+                    <div id="profileAvatarLarge" class="mb-2"></div>
+                    <div class="flex items-center gap-2">
+                        <h2 id="profileName" class="text-2xl font-bold text-white">Nombre</h2>
+                        <button id="editProfileBtn" onclick="toggleEditProfile()" class="hidden text-slate-500 hover:text-blue-400"><i class="fas fa-pencil-alt text-xs"></i></button>
+                    </div>
+                    <div id="profileNick" class="text-sm text-cyan-400 italic"></div>
                 </div>
-                <h3 class="text-xs text-blue-400 uppercase font-bold mb-2 border-b border-slate-800 pb-1">Medallas del Torneo</h3>
-                <div id="badgesContainerCurrent" class="grid grid-cols-4 gap-2"></div>
-            </div>
-            <!-- Global Stats: Indigo theme -->
-            <div id="statsGlobal" class="stats-view hidden">
-                <div class="grid grid-cols-3 gap-2 mb-4">
-                    <div class="bg-indigo-900/30 rounded p-2 text-center border border-indigo-500/30"><div id="gStatPJ" class="text-xl font-bold text-white">0</div><div class="text-[10px] text-indigo-300 uppercase">Total PJ</div></div>
-                    <div class="bg-indigo-900/30 rounded p-2 text-center border border-indigo-500/30"><div id="gStatWins" class="text-xl font-bold text-yellow-400">0</div><div class="text-[10px] text-indigo-300 uppercase">Total PG</div></div>
-                    <div class="bg-indigo-900/30 rounded p-2 text-center border border-indigo-500/30"><div id="gStatChamp" class="text-xl font-bold text-purple-400">0</div><div class="text-[10px] text-indigo-300 uppercase">Copas</div></div>
+                <div class="flex border-b border-slate-700 mb-4">
+                    <button onclick="switchProfileTab('current')" id="tabCurrent" class="flex-1 py-2 text-xs font-bold text-blue-400 border-b-2 border-blue-400">TORNEO ACTUAL</button>
+                    <button onclick="switchProfileTab('global')" id="tabGlobal" class="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-indigo-400 border-b-2 border-transparent">HISTORIAL</button>
                 </div>
-                <h3 class="text-xs text-indigo-400 uppercase font-bold mb-2 border-b border-indigo-900 pb-1">Logros Históricos</h3>
-                <div id="badgesContainerGlobal" class="grid grid-cols-4 gap-2"></div>
+                <div id="statsCurrent" class="stats-view">
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <div class="bg-slate-800/50 rounded p-2 text-center border border-blue-500/20"><div id="statPJ" class="text-xl font-bold text-white">0</div><div class="text-[10px] text-blue-300 uppercase">Jugados</div></div>
+                        <div class="bg-slate-800/50 rounded p-2 text-center border border-blue-500/20"><div id="statPG" class="text-xl font-bold text-yellow-400">0</div><div class="text-[10px] text-blue-300 uppercase">Ganados</div></div>
+                        <div class="bg-slate-800/50 rounded p-2 text-center border border-blue-500/20"><div id="statWinRate" class="text-xl font-bold text-cyan-400">0%</div><div class="text-[10px] text-blue-300 uppercase">Win Rate</div></div>
+                    </div>
+                    <h3 class="text-xs text-blue-400 uppercase font-bold mb-2 border-b border-slate-800 pb-1">Medallas del Torneo</h3>
+                    <div id="badgesContainerCurrent" class="grid grid-cols-4 gap-2"></div>
+                </div>
+                <div id="statsGlobal" class="stats-view hidden">
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <div class="bg-indigo-900/30 rounded p-2 text-center border border-indigo-500/30"><div id="gStatPJ" class="text-xl font-bold text-white">0</div><div class="text-[10px] text-indigo-300 uppercase">Total PJ</div></div>
+                        <div class="bg-indigo-900/30 rounded p-2 text-center border border-indigo-500/30"><div id="gStatWins" class="text-xl font-bold text-yellow-400">0</div><div class="text-[10px] text-indigo-300 uppercase">Total PG</div></div>
+                        <div class="bg-indigo-900/30 rounded p-2 text-center border border-indigo-500/30"><div id="gStatChamp" class="text-xl font-bold text-purple-400">0</div><div class="text-[10px] text-indigo-300 uppercase">Copas</div></div>
+                    </div>
+                    <h3 class="text-xs text-indigo-400 uppercase font-bold mb-2 border-b border-indigo-900 pb-1">Logros Históricos</h3>
+                    <div id="badgesContainerGlobal" class="grid grid-cols-4 gap-2"></div>
+                </div>
+            </div>
+            <div id="profileEdit" class="hidden">
+                <h2 class="text-xl font-bold text-white mb-4 text-center">Editar Perfil</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase font-bold">Nuevo Nombre</label>
+                        <input type="text" id="editNameInput" class="w-full bg-slate-900/50 border border-slate-600 rounded px-3 py-2 text-white focus:border-blue-500 outline-none" placeholder="Nombre">
+                        <p class="text-[10px] text-red-400 mt-1">⚠️ Cambiar el nombre afectará todo el historial.</p>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase font-bold">Apodo</label>
+                        <input type="text" id="editNickInput" class="w-full bg-slate-900/50 border border-slate-600 rounded px-3 py-2 text-white focus:border-blue-500 outline-none" placeholder="Apodo">
+                    </div>
+                    <div class="flex gap-2 mt-6">
+                        <button onclick="toggleEditProfile()" class="flex-1 py-2 rounded border border-slate-600 text-slate-300 hover:bg-slate-800">Cancelar</button>
+                        <button onclick="saveProfileChanges()" class="flex-1 py-2 rounded bg-blue-600 text-white hover:bg-blue-500 font-bold">Guardar</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- STATS TABLE MODAL (Updated colors for better contrast) -->
+    <!-- STATS TABLE MODAL -->
     <div id="statsModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
         <div class="glass-panel rounded-xl w-full max-w-lg flex flex-col max-h-[90vh]">
             <div class="p-4 border-b border-slate-700/50 flex justify-between items-center"><h3 class="text-xl font-bold text-white"><i class="fas fa-chart-line text-cyan-400 mr-2"></i> Tabla de Posiciones</h3><button onclick="closeStatsModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-xl"></i></button></div>
@@ -371,7 +379,6 @@
         </div>
     </div>
 
-    <!-- TOAST & RESET MODAL (Updated colors) -->
     <div id="toast" class="fixed bottom-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-[90] pointer-events-none"></div>
     <div id="resetModal" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-[70] backdrop-blur-sm">
         <div class="glass-panel p-6 rounded-xl max-w-sm w-full mx-4 text-center border border-red-500/30">
@@ -408,7 +415,30 @@
         // --- UTILS DECLARATIONS ---
         function getAvatar(name, size=24) { const seed = name.replace(/\s/g, ''); const url = `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${seed}&backgroundColor=transparent`; return `<img src="${url}" width="${size}" height="${size}" class="rounded-full bg-white/10 avatar-img" alt="${name}">`; }
         
-        // Toast updated to Blue for success
+        function getPlayerBadges(name) {
+            let played=0, won=0, streak=0, currentStreak=0, wallWins=0;
+            const target = gameState.targetScore || 11;
+            if(gameState.rounds) {
+                gameState.rounds.forEach(r => {
+                    r.matches.forEach(m => {
+                        if(m.isBye) return;
+                        if((m.score1>0 || m.score2>0) && (m.p1===name || m.p2===name)) played++;
+                        if(m.winner === name) { 
+                            won++; currentStreak++; if(currentStreak>streak) streak=currentStreak; 
+                            const oppScore = m.p1 === name ? m.score2 : m.score1;
+                            if(oppScore < (target/2)) wallWins++;
+                        }
+                        else if(m.winner && (m.p1===name || m.p2===name)) currentStreak=0;
+                    });
+                });
+            }
+            let html = '';
+            if(streak >= 2) html += '<i class="fas fa-fire text-orange-500 bracket-medal" title="On Fire"></i>';
+            if(wallWins >= 1) html += '<i class="fas fa-shield-alt text-blue-400 bracket-medal" title="La Muralla"></i>';
+            if(won >= 1) html += '<i class="fas fa-skull text-red-400 bracket-medal" title="Primera Sangre"></i>';
+            return html;
+        }
+        
         function showToast(msg, type) { 
             const toast = document.getElementById('toast'); toast.textContent = msg; toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-xl transition-all duration-300 z-[90] ${type==='error'?'bg-red-600':'bg-blue-600'} text-white`; toast.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000); 
         }
@@ -462,7 +492,6 @@
                 const isClaimed = gameState.claims && gameState.claims[p] && gameState.claims[p] !== clientUUID;
                 const lockStyle = isClaimed ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:bg-slate-700/50 cursor-pointer hover:border-cyan-500/50';
                 const icon = isClaimed ? '<i class="fas fa-lock text-red-400"></i>' : getAvatar(p, 32);
-                // Updated list item aesthetic
                 list.innerHTML += `<button onclick="claimIdentity('${p}')" ${isClaimed ? 'disabled' : ''} class="w-full flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/50 transition-all text-left ${lockStyle}">${icon}<span class="font-bold text-white">${p} ${isClaimed ? '(Ocupado)' : ''}</span></button>`;
             });
             return false;
@@ -507,9 +536,77 @@
         window.switchProfileTab = function(tab) {
             const cur = document.getElementById('statsCurrent'); const glob = document.getElementById('statsGlobal');
             const btnC = document.getElementById('tabCurrent'); const btnG = document.getElementById('tabGlobal');
-            // Updated tab colors: Blue vs Indigo
             if(tab === 'current') { cur.classList.remove('hidden'); glob.classList.add('hidden'); btnC.classList.add('text-blue-400', 'border-blue-400'); btnC.classList.remove('text-slate-500', 'border-transparent'); btnG.classList.remove('text-indigo-400', 'border-indigo-400'); btnG.classList.add('text-slate-500', 'border-transparent'); }
             else { cur.classList.add('hidden'); glob.classList.remove('hidden'); btnG.classList.add('text-indigo-400', 'border-indigo-400'); btnG.classList.remove('text-slate-500', 'border-transparent'); btnC.classList.remove('text-blue-400', 'border-blue-400'); btnC.classList.add('text-slate-500', 'border-transparent'); }
+        }
+
+        window.toggleEditProfile = function() {
+            const display = document.getElementById('profileDisplay');
+            const edit = document.getElementById('profileEdit');
+            if (display.classList.contains('hidden')) {
+                display.classList.remove('hidden'); edit.classList.add('hidden');
+            } else {
+                display.classList.add('hidden'); edit.classList.remove('hidden');
+                // Pre-fill
+                const p = currentUserIdentity;
+                document.getElementById('editNameInput').value = p;
+                document.getElementById('editNickInput').value = gameState.playerMeta[p]?.nickname || "";
+            }
+        }
+
+        window.saveProfileChanges = async function() {
+            const newName = document.getElementById('editNameInput').value.trim();
+            const newNick = document.getElementById('editNickInput').value.trim();
+            if(!newName) return showToast("Nombre vacío", "error");
+
+            const oldName = currentUserIdentity;
+            const updates = {};
+
+            updates[`playerMeta.${newName}`] = { nickname: newNick };
+
+            if (newName !== oldName) {
+                if (gameState.players.includes(newName)) return showToast("Nombre ocupado", "error");
+                
+                const newPlayers = gameState.players.filter(p => p !== oldName).concat([newName]);
+                const newPlayerMeta = {...gameState.playerMeta};
+                delete newPlayerMeta[oldName];
+                newPlayerMeta[newName] = { nickname: newNick };
+                
+                const newClaims = {...gameState.claims};
+                newClaims[newName] = newClaims[oldName];
+                delete newClaims[oldName];
+
+                const newGlobalStats = {...gameState.globalStats};
+                if(newGlobalStats[oldName]) {
+                    newGlobalStats[newName] = newGlobalStats[oldName];
+                    delete newGlobalStats[oldName];
+                }
+                
+                const newRounds = JSON.parse(JSON.stringify(gameState.rounds));
+                newRounds.forEach(r => {
+                    r.matches.forEach(m => {
+                        if(m.p1 === oldName) m.p1 = newName;
+                        if(m.p2 === oldName) m.p2 = newName;
+                        if(m.winner === oldName) m.winner = newName;
+                    });
+                });
+
+                let newChampion = gameState.champion === oldName ? newName : gameState.champion;
+
+                updates.players = newPlayers;
+                updates.playerMeta = newPlayerMeta;
+                updates.claims = newClaims;
+                updates.globalStats = newGlobalStats;
+                updates.rounds = newRounds;
+                updates.champion = newChampion;
+                
+                localStorage.setItem(`p_pong_identity_${currentRoomId}`, newName);
+                setIdentity(newName);
+            }
+
+            await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), updates);
+            window.toggleEditProfile();
+            showToast("Perfil actualizado");
         }
 
         window.showProfileModal = function(playerName) {
@@ -519,6 +616,14 @@
             document.getElementById('profileName').textContent = p;
             document.getElementById('profileNick').textContent = gameState.playerMeta[p]?.nickname || "";
             document.getElementById('profileAvatarLarge').innerHTML = getAvatar(p, 80);
+            
+            const editBtn = document.getElementById('editProfileBtn');
+            if (p === currentUserIdentity) editBtn.classList.remove('hidden');
+            else editBtn.classList.add('hidden');
+            
+            document.getElementById('profileDisplay').classList.remove('hidden');
+            document.getElementById('profileEdit').classList.add('hidden');
+
             let played=0, won=0, streak=0, currentStreak=0, wallWins=0;
             const target = gameState.targetScore || 11;
             gameState.rounds.forEach(r => { r.matches.forEach(m => { if(m.isBye) return; if((m.score1>0 || m.score2>0) && (m.p1===p || m.p2===p)) played++; if(m.winner === p) { won++; currentStreak++; if(currentStreak>streak) streak=currentStreak; const oppScore = m.p1 === p ? m.score2 : m.score1; if(oppScore < (target/2)) wallWins++; } else if(m.winner && (m.p1===p || m.p2===p)) currentStreak=0; }); });
@@ -540,9 +645,21 @@
 
         window.confirmReset = async function() {
             const newStats = JSON.parse(JSON.stringify(gameState.globalStats || {}));
-            gameState.players.forEach(p => { if(!newStats[p]) newStats[p] = { played: 0, won: 0, tourneys: 0 }; });
-            gameState.rounds.forEach(r => { r.matches.forEach(m => { if(m.isBye) return; if(m.winner) { if(newStats[m.p1]) newStats[m.p1].played++; if(newStats[m.p2]) newStats[m.p2].played++; if(newStats[m.winner]) newStats[m.winner].won++; } }); });
-            if(gameState.champion && newStats[gameState.champion]) { newStats[gameState.champion].tourneys++; }
+            const initStat = (name) => { if(!newStats[name]) newStats[name] = { played: 0, won: 0, tourneys: 0 }; };
+            gameState.players.forEach(p => initStat(p));
+            gameState.rounds.forEach(r => { r.matches.forEach(m => { 
+                if(m.isBye) return; 
+                if(m.winner) { 
+                    initStat(m.p1); initStat(m.p2);
+                    newStats[m.p1].played++; 
+                    newStats[m.p2].played++; 
+                    newStats[m.winner].won++; 
+                } 
+            }); });
+            if(gameState.champion) { 
+                initStat(gameState.champion);
+                newStats[gameState.champion].tourneys++; 
+            }
             await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), { active: false, rounds: [], champion: null, votes: {}, claims: {}, globalStats: newStats });
             closeResetModal();
         }
@@ -551,9 +668,35 @@
             if (!auth.currentUser) return showToast("Conectando...", "error");
             initAudio(); const code = Math.random().toString(36).substring(2, 6).toUpperCase();
             const tName = document.getElementById('tourneyNameInput').value || "Torneo";
+            const cName = document.getElementById('creatorNameInput').value.trim(); // NEW INPUT
             const target = parseInt(document.getElementById('pointsInput').value) || 11;
-            try { await setDoc(doc(db, window.DB_PATH_PREFIX, code), { tournamentName: tName, targetScore: target, players: [], playerMeta: {}, claims: {}, rounds: [], votes: {}, varTrigger: 0, active: false, champion: null, globalStats: {}, createdAt: new Date().toISOString(), creator: auth.currentUser.uid }); enterRoom(code); } catch (e) { showToast("Error: " + e.message, "error"); }
+            
+            const initialPlayers = cName ? [cName] : [];
+            const initialClaims = {};
+            if(cName) initialClaims[cName] = clientUUID;
+            
+            try { 
+                await setDoc(doc(db, window.DB_PATH_PREFIX, code), { 
+                    tournamentName: tName, 
+                    targetScore: target, 
+                    players: initialPlayers, 
+                    playerMeta: {}, 
+                    claims: initialClaims, 
+                    rounds: [], 
+                    votes: {}, 
+                    varTrigger: 0, 
+                    active: false, 
+                    champion: null, 
+                    globalStats: {}, 
+                    createdAt: new Date().toISOString(), 
+                    creator: auth.currentUser.uid 
+                }); 
+                
+                if(cName) localStorage.setItem(`p_pong_identity_${code}`, cName);
+                enterRoom(code); 
+            } catch (e) { showToast("Error: " + e.message, "error"); }
         }
+
         window.joinRoom = function() { const code = document.getElementById('joinCodeInput').value.trim().toUpperCase(); if (code.length < 2) return showToast("Código inválido", "error"); initAudio(); enterRoom(code); }
 
         function enterRoom(code) {
@@ -608,15 +751,13 @@
                 const totalVotes = votes.p1 + votes.p2;
                 const p1Pct = totalVotes === 0 ? 50 : (votes.p1 / totalVotes) * 100;
                 const amIPlaying = activeMatch.p1 === currentUserIdentity || activeMatch.p2 === currentUserIdentity;
-                // FIX: Only hide 'Votar' button, but keep profile clickable
-                const cursorClass = amIPlaying ? '' : 'cursor-pointer hover:opacity-80 transition-opacity'; 
+                const voteClass = amIPlaying ? 'hidden' : 'cursor-pointer hover:opacity-80 transition-opacity'; 
                 
                 const voteClickAction = amIPlaying ? "" : `voteFor(${activeIndices.r},${activeIndices.m},`;
-                // If playing, hide the "Votar" button visual, but keep layout
                 const voteBtnStyle = amIPlaying ? 'invisible' : '';
 
                 // Updated colors for Featured Match card
-                container.innerHTML = `<div class="w-full featured-card rounded-xl p-3 pt-6 relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-1 bg-yellow-400 animate-pulse"></div><div class="text-[10px] font-bold text-yellow-400 absolute top-1 left-1/2 transform -translate-x-1/2 tracking-widest uppercase">🔥 EN JUEGO 🔥</div><div class="flex justify-between items-center mb-2"><div class="flex flex-col items-center w-1/3 ${cursorClass}" onclick="${voteClickAction}1)">${getAvatar(activeMatch.p1, 32)}<span class="font-bold text-white text-xs mt-1 truncate w-full text-center clickable-name" onclick="event.stopPropagation(); showProfileModal('${activeMatch.p1}')">${activeMatch.p1}</span><div class="bg-cyan-900/50 text-cyan-400 text-[9px] px-2 py-0.5 rounded border border-cyan-700/50 mt-1 ${voteBtnStyle}">Votar</div></div><div class="flex flex-col items-center justify-center w-1/3 z-10"><div class="text-3xl font-mono font-bold text-white leading-none">${activeMatch.score1}-${activeMatch.score2}</div><button onclick="openLiveMatch(${activeIndices.r},${activeIndices.m})" class="mt-1 bg-yellow-500 hover:bg-yellow-400 text-black text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-bounce">ARBITRAR</button></div><div class="flex flex-col items-center w-1/3 ${cursorClass}" onclick="${voteClickAction}2)">${getAvatar(activeMatch.p2, 32)}<span class="font-bold text-white text-xs mt-1 truncate w-full text-center clickable-name" onclick="event.stopPropagation(); showProfileModal('${activeMatch.p2}')">${activeMatch.p2}</span><div class="bg-yellow-900/50 text-yellow-400 text-[9px] px-2 py-0.5 rounded border border-yellow-700/50 mt-1 ${voteBtnStyle}">Votar</div></div></div><div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex mt-1"><div class="h-full bg-cyan-500 transition-all duration-500" style="width: ${p1Pct}%"></div><div class="h-full bg-yellow-500 flex-1"></div></div></div>`;
+                container.innerHTML = `<div class="w-full featured-card rounded-xl p-3 pt-6 relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-1 bg-yellow-400 animate-pulse"></div><div class="text-[10px] font-bold text-yellow-400 absolute top-1 left-1/2 transform -translate-x-1/2 tracking-widest uppercase">🔥 EN JUEGO 🔥</div><div class="flex justify-between items-center mb-2"><div class="flex flex-col items-center w-1/3 ${voteClass}" onclick="${voteClickAction}1)">${getAvatar(activeMatch.p1, 32)}<span class="font-bold text-white text-xs mt-1 truncate w-full text-center clickable-name" onclick="event.stopPropagation(); showProfileModal('${activeMatch.p1}')">${activeMatch.p1} ${getPlayerBadges(activeMatch.p1)}</span><div class="bg-cyan-900/50 text-cyan-400 text-[9px] px-2 py-0.5 rounded border border-cyan-700/50 mt-1 ${voteBtnStyle}">Votar</div></div><div class="flex flex-col items-center justify-center w-1/3 z-10"><div class="text-3xl font-mono font-bold text-white leading-none">${activeMatch.score1}-${activeMatch.score2}</div><button onclick="openLiveMatch(${activeIndices.r},${activeIndices.m})" class="mt-1 bg-yellow-500 hover:bg-yellow-400 text-black text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-bounce">ARBITRAR</button></div><div class="flex flex-col items-center w-1/3 ${voteClass}" onclick="${voteClickAction}2)">${getAvatar(activeMatch.p2, 32)}<span class="font-bold text-white text-xs mt-1 truncate w-full text-center clickable-name" onclick="event.stopPropagation(); showProfileModal('${activeMatch.p2}')">${activeMatch.p2} ${getPlayerBadges(activeMatch.p2)}</span><div class="bg-yellow-900/50 text-yellow-400 text-[9px] px-2 py-0.5 rounded border border-yellow-700/50 mt-1 ${voteBtnStyle}">Votar</div></div></div><div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex mt-1"><div class="h-full bg-cyan-500 transition-all duration-500" style="width: ${p1Pct}%"></div><div class="h-full bg-yellow-500 flex-1"></div></div></div>`;
             } else { container.classList.add('hidden'); }
         }
 
@@ -640,7 +781,7 @@
             gameState.rounds.forEach(round => { round.matches.forEach(m => { if (m.isBye) return; if (m.score1 > 0 || m.score2 > 0 || m.winner) { if(stats[m.p1]) { stats[m.p1].played++; stats[m.p1].diff += (m.score1 - m.score2); } if(m.p2 && stats[m.p2]) { stats[m.p2].played++; stats[m.p2].diff += (m.score2 - m.score1); } } if (m.winner && stats[m.winner]) stats[m.winner].won++; }); });
             const sortedStats = Object.values(stats).sort((a, b) => { if (a.won !== b.won) return b.won - a.won; return b.diff - a.diff; });
             const tbody = document.getElementById('statsTableBody'); tbody.innerHTML = '';
-            sortedStats.forEach((s, i) => { const isLeader = i === 0 && s.won > 0; const rowClass = isLeader ? 'bg-yellow-500/20 text-yellow-200' : 'border-b border-slate-700/30 text-slate-300'; const isMe = s.name === currentUserIdentity; tbody.innerHTML += `<tr class="${rowClass}"> <td class="py-2 pl-2 font-mono text-slate-500/70">${i + 1}</td> <td class="py-2 flex items-center gap-2">${getAvatar(s.name, 24)} <span class="${isLeader ? 'font-bold' : ''} ${isMe ? 'me-highlight' : ''}">${s.name} ${isLeader ? '👑' : ''}</span></td> <td class="py-2 text-center font-mono">${s.played}</td> <td class="py-2 text-center font-mono font-bold">${s.won}</td> <td class="py-2 text-center font-mono text-xs ${s.diff > 0 ? 'text-green-400' : 'text-red-400'}">${s.diff > 0 ? '+' : ''}${s.diff}</td> </tr>`; });
+            sortedStats.forEach((s, i) => { const isLeader = i === 0 && s.won > 0; const rowClass = isLeader ? 'bg-yellow-500/20 text-yellow-200' : 'border-b border-slate-700/30 text-slate-300'; const isMe = s.name === currentUserIdentity; tbody.innerHTML += `<tr class="${rowClass}"> <td class="py-2 pl-2 font-mono text-slate-500/70">${i + 1}</td> <td class="py-2 flex items-center gap-2 clickable-name" onclick="showProfileModal('${s.name}')">${getAvatar(s.name, 24)} <span class="${isLeader ? 'font-bold' : ''} ${isMe ? 'me-highlight' : ''}">${s.name} ${isLeader ? '👑' : ''}</span></td> <td class="py-2 text-center font-mono">${s.played}</td> <td class="py-2 text-center font-mono font-bold">${s.won}</td> <td class="py-2 text-center font-mono text-xs ${s.diff > 0 ? 'text-green-400' : 'text-red-400'}">${s.diff > 0 ? '+' : ''}${s.diff}</td> </tr>`; });
         }
         window.copyRoomCode = function() { const code = document.getElementById('roomCodeDisplay').textContent; navigator.clipboard.writeText(code).then(() => showToast("Código copiado!")); }
         window.toggleFullScreen = function() { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => console.log(e)); else if (document.exitFullscreen) document.exitFullscreen(); }
@@ -666,8 +807,8 @@
                     if(m.isBye) { html += `<div class="text-center py-4"><div class="font-bold text-white flex justify-center items-center gap-2">${getAvatar(m.p1, 32)} <span class="${m.p1 === currentUserIdentity ? 'me-highlight' : ''} clickable-name" onclick="showProfileModal('${m.p1}')">${m.p1}</span></div><div class="text-xs text-slate-400 mt-1">BYE</div></div>`; } 
                     else {
                         const n1 = gameState.playerMeta[m.p1]?.nickname || ""; const n2 = gameState.playerMeta[m.p2]?.nickname || "";
-                        html += `<div class="flex justify-between items-center mb-2 ${p1W ? 'text-yellow-400 font-bold' : 'text-white'}"><span class="truncate w-32 text-sm"><div class="flex items-center gap-2">${getAvatar(m.p1)} <span class="${m.p1 === currentUserIdentity ? 'me-highlight' : ''} clickable-name" onclick="showProfileModal('${m.p1}')">${m.p1}</span></div>${n1 ? `<div class="text-[10px] text-slate-400/60 ml-8 italic">${n1}</div>` : ''}</span><span class="font-mono font-bold text-xl">${m.score1}</span></div>`;
-                        html += `<div class="flex justify-between items-center mt-2 ${p2W ? 'text-yellow-400 font-bold' : 'text-white'}"><span class="truncate w-32 text-sm"><div class="flex items-center gap-2">${getAvatar(m.p2||'?')} <span class="${m.p2 === currentUserIdentity ? 'me-highlight' : ''} clickable-name" onclick="showProfileModal('${m.p2}')">${m.p2||'?'}</span></div>${n2 ? `<div class="text-[10px] text-slate-400/60 ml-8 italic">${n2}</div>` : ''}</span><span class="font-mono font-bold text-xl">${m.score2}</span></div><div class="flex gap-2 mt-3">`;
+                        html += `<div class="flex justify-between items-center mb-2 ${p1W ? 'text-yellow-400 font-bold' : 'text-white'}"><span class="truncate w-32 text-sm"><div class="flex items-center gap-2">${getAvatar(m.p1)} <span class="${m.p1 === currentUserIdentity ? 'me-highlight' : ''} clickable-name" onclick="showProfileModal('${m.p1}')">${m.p1} ${getPlayerBadges(m.p1)}</span></div>${n1 ? `<div class="text-[10px] text-slate-400/60 ml-8 italic">${n1}</div>` : ''}</span><span class="font-mono font-bold text-xl">${m.score1}</span></div>`;
+                        html += `<div class="flex justify-between items-center mt-2 ${p2W ? 'text-yellow-400 font-bold' : 'text-white'}"><span class="truncate w-32 text-sm"><div class="flex items-center gap-2">${getAvatar(m.p2||'?')} <span class="${m.p2 === currentUserIdentity ? 'me-highlight' : ''} clickable-name" onclick="showProfileModal('${m.p2}')">${m.p2||'?'} ${getPlayerBadges(m.p2)}</span></div>${n2 ? `<div class="text-[10px] text-slate-400/60 ml-8 italic">${n2}</div>` : ''}</span><span class="font-mono font-bold text-xl">${m.score2}</span></div><div class="flex gap-2 mt-3">`;
                         if(!done && m.p2) {
                             const isCreator = auth.currentUser && gameState.creator === auth.currentUser.uid;
                             // Action buttons: Blue theme
