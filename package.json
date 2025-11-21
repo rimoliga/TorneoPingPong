@@ -1,0 +1,12 @@
+{
+  "name": "ping-pong-dev",
+  "version": "1.0.0",
+  "description": "Servidor de desarrollo para inyectar variables de entorno",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0"
+  }
+}
