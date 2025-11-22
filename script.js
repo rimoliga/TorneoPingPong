@@ -487,7 +487,7 @@ function renderBracket() {
             html += matchLabel;
 
             if (!m.isBye) html += `<div class="flex justify-end mb-2">${statusBadge}</div>`;
-            if (m.isBye) { html += `<div class="text-center py-4"><div class="font-bold text-white flex justify-center items-center gap-2">${getAvatar(m.p1, 32)} <span class="${m.p1 === currentUserIdentity ? 'me-highlight' : ''} clickable-name" onclick="showProfileModal('${m.p1}')">${m.p1}</span></div><div class="text-xs text-slate-400 mt-1">BYE</div></div>`; }
+            if (m.isBye) { html += `<div class="text-center py-4"><div class="font-bold text-white flex justify-center items-center gap-2">${getAvatar(m.p1, 32)} <span class="${m.p1 === currentUserIdentity ? 'me-highlight' : ''} clickable-name" onclick="showProfileModal('${m.p1}')">${m.p1}</span></div><div class="text-xs text-slate-400 mt-1">PASA DE UNA</div></div>`; }
             else {
                 const n1 = gameState.playerMeta[m.p1]?.nickname || ""; const n2 = gameState.playerMeta[m.p2]?.nickname || "";
                 html += `<div class="flex justify-between items-center mb-2 ${p1W ? 'text-yellow-400 font-bold' : 'text-white'}"><span class="truncate w-32 text-sm"><div class="flex items-center gap-2">${getAvatar(m.p1)} <span class="${m.p1 === currentUserIdentity ? 'me-highlight' : ''} clickable-name" onclick="showProfileModal('${m.p1}')">${m.p1} ${getPlayerBadges(m.p1)}</span></div>${n1 ? `<div class="text-[10px] text-slate-400/60 ml-8 italic">${n1}</div>` : ''}</span><span class="font-mono font-bold text-xl">${m.score1}</span></div>`;
