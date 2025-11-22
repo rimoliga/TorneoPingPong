@@ -224,6 +224,7 @@ window.confirmReset = async function () {
     }
     await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), { active: false, rounds: [], champion: null, votes: {}, claims: {}, globalStats: newStats });
     closeResetModal();
+    closeLiveMatch();
 }
 
 window.createRoom = async function () {
@@ -283,13 +284,25 @@ function syncUI() {
     if (!currentUserIdentity) { if (!checkIdentity()) return; }
     if (gameState.tournamentName) document.getElementById('mainTitle').innerHTML = gameState.tournamentName.toUpperCase().replace(' ', '<br>');
     const target = gameState.targetScore || 11; document.getElementById('rulesDisplay').textContent = `A ${target} Puntos`;
-    const isCreator = auth.currentUser && gameState.creator === auth.currentUser.uid;
+
+    let isCreator = auth.currentUser && gameState.creator === auth.currentUser.uid;
+    // Fallback: If no creator in DB or I am the first player (recovery), allow admin access
+    if (!gameState.creator || (gameState.players.length > 0 && currentUserIdentity === gameState.players[0])) isCreator = true;
+
     const resetBtn = document.getElementById('resetBtn'); if (isCreator) resetBtn.classList.remove('hidden'); else resetBtn.classList.add('hidden');
     const winnerResetBtn = document.getElementById('winnerResetBtn'); if (isCreator) winnerResetBtn.classList.remove('hidden'); else winnerResetBtn.classList.add('hidden');
+    const liveResetBtn = document.getElementById('liveResetBtn'); if (liveResetBtn) { if (isCreator) liveResetBtn.classList.remove('hidden'); else liveResetBtn.classList.add('hidden'); }
 
     if (gameState.active) { document.getElementById('setupSection').classList.add('hidden'); document.getElementById('bracketSection').classList.remove('hidden'); renderFeaturedMatch(); renderBracket(); }
     else { document.getElementById('bracketSection').classList.add('hidden'); if (!currentUserIdentity || isCreator) { document.getElementById('setupSection').classList.remove('hidden'); renderPlayerList(); } else { document.getElementById('setupSection').classList.remove('hidden'); renderPlayerList(); } }
-    if (!document.getElementById('liveMatchModal').classList.contains('hidden') && liveMatchIndices) updateLiveMatchUI(gameState.rounds[liveMatchIndices.rIdx].matches[liveMatchIndices.mIdx]);
+    if (!document.getElementById('liveMatchModal').classList.contains('hidden') && liveMatchIndices) {
+        const r = gameState.rounds[liveMatchIndices.rIdx];
+        if (r && r.matches[liveMatchIndices.mIdx]) {
+            updateLiveMatchUI(r.matches[liveMatchIndices.mIdx]);
+        } else {
+            closeLiveMatch();
+        }
+    }
     const modal = document.getElementById('winnerAnnouncement'); const btn = document.getElementById('showChampionBtn');
     if (gameState.champion) { btn.classList.remove('hidden'); if (!winnerAcknowledged && modal.classList.contains('hidden')) { modal.classList.remove('hidden'); document.getElementById('winnerText').textContent = gameState.champion; document.getElementById('winnerAvatarLarge').innerHTML = getAvatar(gameState.champion, 80); confetti({ particleCount: 150, spread: 100 }); playSound('win', 0.3); } } else { btn.classList.add('hidden'); modal.classList.add('hidden'); winnerAcknowledged = false; }
     if (!document.getElementById('statsModal').classList.contains('hidden')) calculateAndRenderStats();
@@ -357,14 +370,11 @@ window.finishMatch = async function (rIdx, mIdx) {
 
     let champ = null;
     if (matches.every(m => m.winner)) {
-        // If last round has 2 matches, it means Final + 3rd place.
-        // Champion is winner of match index 0.
-        if (rounds.length === rIdx + 1 && matches.length === 2 && mIdx === 0) {
-            champ = match.winner;
-        }
-        else if (matches.length === 1) {
-            // Single match final round (e.g. only 2 or 3 players initially)
-            champ = match.winner;
+        const totalRounds = Math.ceil(Math.log2(gameState.players.length));
+
+        // If this is the calculated final round, the winner of the first match (Final) is the champion.
+        if (rIdx === totalRounds - 1) {
+            champ = matches[0].winner;
         }
         else if (!rounds[rIdx + 1]) {
             // Logic for generating next round
@@ -467,7 +477,8 @@ function renderBracket() {
 
             // Special label for 3rd place
             let matchLabel = "";
-            if (rIdx === gameState.rounds.length - 1 && gameState.rounds[rIdx].matches.length === 2) {
+            const totalRounds = Math.ceil(Math.log2(gameState.players.length));
+            if (rIdx === totalRounds - 1 && gameState.rounds[rIdx].matches.length === 2) {
                 if (mIdx === 0) matchLabel = '<div class="text-center text-[10px] text-yellow-400 font-bold mb-1 tracking-widest">🏆 GRAN FINAL</div>';
                 if (mIdx === 1) matchLabel = '<div class="text-center text-[10px] text-slate-400 font-bold mb-1 tracking-widest">🥉 3ER PUESTO</div>';
             }
