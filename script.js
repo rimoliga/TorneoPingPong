@@ -291,8 +291,6 @@ function syncUI() {
 
     const resetBtn = document.getElementById('resetBtn'); if (isCreator) resetBtn.classList.remove('hidden'); else resetBtn.classList.add('hidden');
     const winnerResetBtn = document.getElementById('winnerResetBtn'); if (isCreator) winnerResetBtn.classList.remove('hidden'); else winnerResetBtn.classList.add('hidden');
-    const liveResetBtn = document.getElementById('liveResetBtn'); if (liveResetBtn) { if (isCreator) liveResetBtn.classList.remove('hidden'); else liveResetBtn.classList.add('hidden'); }
-
     if (gameState.active) { document.getElementById('setupSection').classList.add('hidden'); document.getElementById('bracketSection').classList.remove('hidden'); renderFeaturedMatch(); renderBracket(); }
     else { document.getElementById('bracketSection').classList.add('hidden'); if (!currentUserIdentity || isCreator) { document.getElementById('setupSection').classList.remove('hidden'); renderPlayerList(); } else { document.getElementById('setupSection').classList.remove('hidden'); renderPlayerList(); } }
     if (!document.getElementById('liveMatchModal').classList.contains('hidden') && liveMatchIndices) {
@@ -363,8 +361,12 @@ window.finishMatch = async function (rIdx, mIdx) {
     const rounds = JSON.parse(JSON.stringify(gameState.rounds));
     const matches = rounds[rIdx].matches;
     const match = matches[mIdx];
+    const target = gameState.targetScore || 11;
+    const lead = Math.abs(match.score1 - match.score2);
+    const maxScore = Math.max(match.score1, match.score2);
 
     if (match.score1 === match.score2) return showToast("No empates", "error");
+    if (maxScore < target || lead < 2) return showToast(`Debe llegar a ${target} con 2 de diferencia`, "error");
     match.winner = match.score1 > match.score2 ? match.p1 : match.p2;
     playSound('win');
 

@@ -8,7 +8,10 @@ require('dotenv').config();
 const PORT = 3000;
 
 const server = http.createServer((req, res) => {
-    if (req.url === '/' || req.url === '/index.html') {
+    const rawUrl = req.url || '/';
+    const pathname = rawUrl.split('?')[0].split('#')[0];
+
+    if (pathname === '/' || pathname === '/index.html') {
         fs.readFile(path.join(__dirname, 'index.html'), 'utf8', (err, data) => {
             if (err) {
                 res.writeHead(500);
@@ -29,7 +32,33 @@ const server = http.createServer((req, res) => {
             res.end(modifiedHtml);
         });
     } else {
-        const filePath = path.join(__dirname, req.url);
+        let decodedPath;
+        try {
+            decodedPath = decodeURIComponent(pathname);
+        } catch {
+            res.writeHead(400);
+            res.end('Bad Request');
+            return;
+        }
+
+        const relativeInputPath = decodedPath.replace(/^[/\\]+/, '');
+        const normalizedPath = path.normalize(relativeInputPath);
+        if (path.isAbsolute(normalizedPath) || normalizedPath.startsWith('..')) {
+            res.writeHead(404);
+            res.end('Not Found');
+            return;
+        }
+
+        const filePath = path.join(__dirname, normalizedPath);
+        const basePath = path.resolve(__dirname);
+        const resolvedPath = path.resolve(filePath);
+
+        if (!resolvedPath.startsWith(basePath + path.sep)) {
+            res.writeHead(404);
+            res.end('Not Found');
+            return;
+        }
+
         const extname = path.extname(filePath);
         let contentType = 'text/html';
         switch (extname) {
