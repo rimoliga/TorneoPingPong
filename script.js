@@ -19,7 +19,7 @@ let notifiedMatches = new Set();
 let clientUUID = localStorage.getItem('p_pong_client_id') || crypto.randomUUID();
 localStorage.setItem('p_pong_client_id', clientUUID);
 
-let gameState = { tournamentName: "Torneo sin nombre", targetScore: 11, players: [], playerMeta: {}, claims: {}, rounds: [], votes: {}, varTrigger: 0, active: false, champion: null, globalStats: {} };
+let gameState = { tournamentName: "Torneo sin nombre", targetScore: 11, players: [], playerMeta: {}, claims: {}, rounds: [], votes: {}, varTrigger: 0, active: false, champion: null, globalStats: {}, readyPlayers: {} };
 
 // --- UTILS DECLARATIONS ---
 function getAvatar(name, size = 24) { const seed = name.replace(/\s/g, ''); const url = `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${seed}&backgroundColor=transparent`; return `<img src="${url}" width="${size}" height="${size}" class="rounded-full bg-white/10 avatar-img" alt="${name}">`; }
@@ -63,7 +63,7 @@ async function initApp() {
     } catch (error) { console.error(error); updateStatus("Error", "text-red-500"); }
 }
 function updateStatus(msg, colorClass) { const el = document.getElementById('connectionStatus'); if (el) { el.innerHTML = `<i class="fas fa-wifi"></i> ${msg}`; el.className = `text-xs font-mono ${colorClass}`; } }
-function isRoomAdmin() { if (auth && auth.currentUser && gameState.creator === auth.currentUser.uid) return true; if (!gameState.creator && gameState.players.length > 0 && currentUserIdentity === gameState.players[0]) return true; return false; }
+function getReadyPlayers() { return gameState.readyPlayers || {}; }
 
 function checkIdentity() {
     const storedName = localStorage.getItem(`p_pong_identity_${currentRoomId}`);
@@ -223,7 +223,7 @@ window.confirmReset = async function () {
         initStat(gameState.champion);
         newStats[gameState.champion].tourneys++;
     }
-    await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), { active: false, rounds: [], champion: null, votes: {}, claims: {}, globalStats: newStats, activeSince: null });
+    await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), { active: false, rounds: [], champion: null, votes: {}, claims: {}, globalStats: newStats, activeSince: null, readyPlayers: {} });
     closeResetModal();
     closeLiveMatch();
 }
@@ -253,6 +253,7 @@ window.createRoom = async function () {
             activeSince: null,
             champion: null,
             globalStats: {},
+            readyPlayers: {},
             createdAt: new Date().toISOString(),
             creator: auth.currentUser.uid
         });
@@ -274,7 +275,7 @@ function enterRoom(code) {
             if (gameState.active && previousRounds && newData.rounds) checkForNewWinners(newData.rounds);
             if (newData.varTrigger && newData.varTrigger > lastVarTime) { lastVarTime = newData.varTrigger; playVarAnimation(); }
             gameState = newData;
-            if (!gameState.votes) gameState.votes = {}; if (!gameState.playerMeta) gameState.playerMeta = {}; if (!gameState.claims) gameState.claims = {}; if (!gameState.globalStats) gameState.globalStats = {};
+            if (!gameState.votes) gameState.votes = {}; if (!gameState.playerMeta) gameState.playerMeta = {}; if (!gameState.claims) gameState.claims = {}; if (!gameState.globalStats) gameState.globalStats = {}; if (!gameState.readyPlayers) gameState.readyPlayers = {};
             if (gameState.rounds) previousRounds = JSON.parse(JSON.stringify(gameState.rounds));
             syncUI(); checkMyTurn();
         } else { showToast("Sala no encontrada", "error"); exitRoom(); }
@@ -340,21 +341,29 @@ window.openLiveMatch = function (rIdx, mIdx) { const match = gameState.rounds[rI
 window.closeLiveMatch = function () { document.getElementById('liveMatchModal').classList.add('hidden'); liveMatchIndices = null; }
 function updateLiveMatchUI(match) { document.getElementById('liveP1Score').textContent = match.score1; document.getElementById('liveP2Score').textContent = match.score2; const matchKey = `${currentRoomId}_r${liveMatchIndices.rIdx}m${liveMatchIndices.mIdx}`; const votes = gameState.votes[matchKey] || { p1: 0, p2: 0 }; const totalVotes = votes.p1 + votes.p2; const p1Pct = totalVotes === 0 ? 50 : (votes.p1 / totalVotes) * 100; const p2Pct = totalVotes === 0 ? 50 : (votes.p2 / totalVotes) * 100; document.getElementById('barVoteP1').style.width = `${p1Pct}%`; document.getElementById('textVoteP1').textContent = totalVotes === 0 ? '50%' : `${Math.round(p1Pct)}%`; document.getElementById('textVoteP2').textContent = totalVotes === 0 ? '50%' : `${Math.round(p2Pct)}%`; const amIPlaying = match.p1 === currentUserIdentity || match.p2 === currentUserIdentity; if (amIPlaying) { document.getElementById('voteBtnP1').classList.add('hidden'); document.getElementById('voteBtnP2').classList.add('hidden'); } else { document.getElementById('voteBtnP1').classList.remove('hidden'); document.getElementById('voteBtnP2').classList.remove('hidden'); } const target = gameState.targetScore || 11; const lead = Math.abs(match.score1 - match.score2); const maxScore = Math.max(match.score1, match.score2); const isWin = maxScore >= target && lead >= 2; const p1Area = document.getElementById('liveAreaP1'); const p2Area = document.getElementById('liveAreaP2'); if (isWin) { p1Area.classList.add('locked-add'); p2Area.classList.add('locked-add'); } else { p1Area.classList.remove('locked-add'); p2Area.classList.remove('locked-add'); } const finishBtn = document.getElementById('liveFinishBtnContainer'); if (isWin && !match.winner) { finishBtn.classList.remove('hidden'); if (maxScore === target || lead === 2) confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } }); } else { finishBtn.classList.add('hidden'); } const totalPoints = match.score1 + match.score2; let serverP1 = true; if (maxScore >= (target - 1) && match.score1 >= (target - 1) && match.score2 >= (target - 1)) { serverP1 = (totalPoints % 2) === 0; } else { const changeRate = target >= 21 ? 5 : 2; serverP1 = Math.floor(totalPoints / changeRate) % 2 === 0; } if (serverP1) { document.getElementById('liveP1Serve').classList.remove('hidden'); document.getElementById('liveP2Serve').classList.add('hidden'); } else { document.getElementById('liveP1Serve').classList.add('hidden'); document.getElementById('liveP2Serve').classList.remove('hidden'); } }
 window.voteFor = async function (rIdx, mIdx, playerNum) { let r = rIdx, m = mIdx, p = playerNum; if (arguments.length === 1) { if (!liveMatchIndices) return; r = liveMatchIndices.rIdx; m = liveMatchIndices.mIdx; p = arguments[0]; } const match = gameState.rounds[r].matches[m]; if (match.p1 === currentUserIdentity || match.p2 === currentUserIdentity) return showToast("No puedes votar en tu propio partido", "error"); const matchKey = `${currentRoomId}_r${r}m${m}`; const voteScope = gameState.activeSince || gameState.createdAt || "legacy"; const localVoteKey = `voted_${matchKey}_${voteScope}`; if (localStorage.getItem(localVoteKey)) return showToast("Ya votaste en este partido", "error"); const votes = gameState.votes || {}; if (!votes[matchKey]) votes[matchKey] = { p1: 0, p2: 0 }; if (p === 1) votes[matchKey].p1++; else votes[matchKey].p2++; await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), { votes: votes }); localStorage.setItem(localVoteKey, "true"); showToast("Voto registrado!"); playSound('ping', 0.05); }
+window.toggleReady = async function () {
+    if (!currentUserIdentity) return showToast("Primero elige tu identidad", "error");
+    const readyPlayers = { ...getReadyPlayers() };
+    readyPlayers[currentUserIdentity] = !readyPlayers[currentUserIdentity];
+    await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), { readyPlayers });
+};
 window.liveScore = async function (playerNum, delta) { if (!liveMatchIndices) return; const { rIdx, mIdx } = liveMatchIndices; const rounds = JSON.parse(JSON.stringify(gameState.rounds)); const match = rounds[rIdx].matches[mIdx]; if (match.winner && delta > 0) return; if (match.winner && delta < 0) { match.winner = null; if (rounds.length === rIdx + 1) gameState.champion = null; } const target = gameState.targetScore || 11; const currentMax = Math.max(match.score1, match.score2); const lead = Math.abs(match.score1 - match.score2); const isAlreadyWon = currentMax >= target && lead >= 2; if (delta > 0 && isAlreadyWon && !match.winner) return; let newVal = (playerNum === 1 ? match.score1 : match.score2) + delta; if (newVal < 0) newVal = 0; if (playerNum === 1) match.score1 = newVal; else match.score2 = newVal; if (delta > 0) playSound('ping'); await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), { rounds, champion: gameState.champion }); }
 window.finishLiveMatch = function () { if (!liveMatchIndices) return; finishMatch(liveMatchIndices.rIdx, liveMatchIndices.mIdx); closeLiveMatch(); }
 window.addPlayer = async function () { const name = document.getElementById('playerInput').value.trim(); const nick = document.getElementById('playerNickInput').value.trim(); if (!name || gameState.players.includes(name)) return; const updateData = { players: arrayUnion(name) }; if (nick) updateData[`playerMeta.${name}`] = { nickname: nick }; await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), updateData); document.getElementById('playerInput').value = ''; document.getElementById('playerNickInput').value = ''; playSound('ping'); }
 window.removePlayer = async function (idx) { const newP = [...gameState.players]; newP.splice(idx, 1); await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), { players: newP }); }
 
 window.startTournament = async function () {
-    if (!isRoomAdmin()) return showToast("Solo el creador/admin puede sortear equipos", "error");
     if (gameState.players.length < 2) return;
+    const readyPlayers = getReadyPlayers();
+    const allReady = gameState.players.every(p => !!readyPlayers[p]);
+    if (!allReady) return showToast("Faltan jugadores por marcarse como listos", "error");
     const shuffled = [...gameState.players].sort(() => Math.random() - 0.5);
     const matches = [];
     while (shuffled.length > 0) {
         const p1 = shuffled.pop(); const p2 = shuffled.length > 0 ? shuffled.pop() : null;
         matches.push({ p1, p2, score1: 0, score2: 0, winner: p2 ? null : p1, isBye: !p2, status: 'pending' });
     }
-    await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), { rounds: [{ matches }], active: true, activeSince: Date.now(), champion: null });
+    await updateDoc(doc(db, window.DB_PATH_PREFIX, currentRoomId), { rounds: [{ matches }], active: true, activeSince: Date.now(), champion: null, readyPlayers: {} });
     playSound('win', 0.2);
 }
 
@@ -513,12 +522,20 @@ function renderBracket() {
 
 function renderPlayerList() {
     const list = document.getElementById('playerList'); list.innerHTML = '';
+    const readyPlayers = getReadyPlayers();
+    const readyCount = gameState.players.filter(p => !!readyPlayers[p]).length;
     gameState.players.forEach((p, i) => {
         const nick = gameState.playerMeta[p]?.nickname || ""; const isMe = p === currentUserIdentity; const isCreator = auth.currentUser && gameState.creator === auth.currentUser.uid; const removeBtn = isCreator ? `<button onclick="removePlayer(${i})" class="text-red-400 hover:bg-red-500/20 p-1 rounded"><i class="fas fa-times"></i></button>` : '';
-        list.innerHTML += `<li class="flex justify-between items-center bg-slate-800/40 px-3 py-2 rounded border border-blue-900/50 animate-fade-in"><div><span class="text-white font-medium flex items-center gap-2 clickable-name" onclick="showProfileModal('${p}')">${getAvatar(p, 32)} <span class="${isMe ? 'me-highlight' : ''}">${p}</span></span>${nick ? `<div class="text-[10px] text-slate-400 italic ml-10">${nick}</div>` : ''}</div>${removeBtn}</li>`;
+        const readyBadge = readyPlayers[p] ? '<span class="text-[10px] text-emerald-300 border border-emerald-400/40 px-1 py-0.5 rounded">LISTO</span>' : '<span class="text-[10px] text-slate-400 border border-slate-600/40 px-1 py-0.5 rounded">PENDIENTE</span>';
+        list.innerHTML += `<li class="flex justify-between items-center bg-slate-800/40 px-3 py-2 rounded border border-blue-900/50 animate-fade-in"><div><span class="text-white font-medium flex items-center gap-2 clickable-name" onclick="showProfileModal('${p}')">${getAvatar(p, 32)} <span class="${isMe ? 'me-highlight' : ''}">${p}</span> ${readyBadge}</span>${nick ? `<div class="text-[10px] text-slate-400 italic ml-10">${nick}</div>` : ''}</div>${removeBtn}</li>`;
     });
     document.getElementById('playerCount').textContent = `${gameState.players.length} Jugadores`;
-    document.getElementById('startBtn').disabled = gameState.players.length < 2;
+    const allReady = gameState.players.length >= 2 && gameState.players.every(p => !!readyPlayers[p]);
+    document.getElementById('readyCount').textContent = `${readyCount}/${gameState.players.length} listos`;
+    const readyBtn = document.getElementById('readyBtn');
+    if (currentUserIdentity && readyPlayers[currentUserIdentity]) readyBtn.textContent = "NO LISTO";
+    else readyBtn.textContent = "LISTO";
+    document.getElementById('startBtn').disabled = !allReady;
 }
 
 initApp();

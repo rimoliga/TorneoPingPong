@@ -165,14 +165,14 @@ test("finishMatch válido define ganador y campeón en final", async () => {
   assert.equal(payload.champion, "A");
 });
 
-test("solo admin/creador puede iniciar torneo", async () => {
+test("startTournament bloquea si no estan todos listos", async () => {
   const ctx = loadFrontendContext();
   const hooks = ctx.window.__TEST_HOOKS__;
   hooks.setCurrentRoomId("ROOM1");
-  hooks.setCurrentIdentity("jugador-no-admin");
+  hooks.setCurrentIdentity("p1");
   hooks.setGameState({
-    players: ["owner", "p2", "p3"],
-    creator: "otro-uid",
+    players: ["p1", "p2", "p3"],
+    readyPlayers: { p1: true, p2: false, p3: true },
     rounds: [],
   });
   hooks.clearLastUpdatePayload();
@@ -181,8 +181,27 @@ test("solo admin/creador puede iniciar torneo", async () => {
   assert.equal(hooks.getLastUpdatePayload(), null);
   assert.equal(
     hooks.getLastToast()?.msg,
-    "Solo el creador/admin puede sortear equipos"
+    "Faltan jugadores por marcarse como listos"
   );
+});
+
+test("startTournament permite sortear cuando todos estan listos", async () => {
+  const ctx = loadFrontendContext();
+  const hooks = ctx.window.__TEST_HOOKS__;
+  hooks.setCurrentRoomId("ROOM1");
+  hooks.setCurrentIdentity("p1");
+  hooks.setGameState({
+    players: ["p1", "p2", "p3", "p4"],
+    readyPlayers: { p1: true, p2: true, p3: true, p4: true },
+    rounds: [],
+  });
+  hooks.clearLastUpdatePayload();
+
+  await ctx.window.startTournament();
+  const payload = hooks.getLastUpdatePayload();
+  assert.equal(payload.active, true);
+  assert.equal(Array.isArray(payload.rounds), true);
+  assert.equal(typeof payload.activeSince, "number");
 });
 
 test("permite votar el mismo partido en torneos distintos", async () => {
