@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+﻿name: Deploy to GitHub Pages
 
 on:
   push:
@@ -15,7 +15,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
   deploy:
+    needs: test
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -24,16 +43,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Inyectar Credenciales de Firebase
+      - name: Inyectar credenciales de Firebase
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
         run: |
-          # Este paso busca los marcadores __XXX__ en index.html y los reemplaza
-          # con los valores reales guardados en los Secrets de GitHub
-          sed -i 's|__API_KEY__|${{ secrets.FIREBASE_API_KEY }}|g' index.html
-          sed -i 's|__AUTH_DOMAIN__|${{ secrets.FIREBASE_AUTH_DOMAIN }}|g' index.html
-          sed -i 's|__PROJECT_ID__|${{ secrets.FIREBASE_PROJECT_ID }}|g' index.html
-          sed -i 's|__STORAGE_BUCKET__|${{ secrets.FIREBASE_STORAGE_BUCKET }}|g' index.html
-          sed -i 's|__MESSAGING_SENDER_ID__|${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}|g' index.html
-          sed -i 's|__APP_ID__|${{ secrets.FIREBASE_APP_ID }}|g' index.html
+          # Reemplaza placeholders en archivos de configuración estática.
+          # Compatibilidad: estructura actual y estructura modular futura.
+          escape_sed() {
+            printf '%s' "$1" | sed -e 's/[\/&|]/\\&/g'
+          }
+
+          API_KEY_ESCAPED=$(escape_sed "$FIREBASE_API_KEY")
+          AUTH_DOMAIN_ESCAPED=$(escape_sed "$FIREBASE_AUTH_DOMAIN")
+          PROJECT_ID_ESCAPED=$(escape_sed "$FIREBASE_PROJECT_ID")
+          STORAGE_BUCKET_ESCAPED=$(escape_sed "$FIREBASE_STORAGE_BUCKET")
+          MESSAGING_SENDER_ID_ESCAPED=$(escape_sed "$FIREBASE_MESSAGING_SENDER_ID")
+          APP_ID_ESCAPED=$(escape_sed "$FIREBASE_APP_ID")
+
+          TARGET_FILES=(
+            "index.html"
+            "src/config/firebase-config.js"
+            "src/config/firebase-config.template.js"
+          )
+
+          for file in "${TARGET_FILES[@]}"; do
+            if [ -f "$file" ]; then
+              sed -i "s|__API_KEY__|$API_KEY_ESCAPED|g" "$file"
+              sed -i "s|__AUTH_DOMAIN__|$AUTH_DOMAIN_ESCAPED|g" "$file"
+              sed -i "s|__PROJECT_ID__|$PROJECT_ID_ESCAPED|g" "$file"
+              sed -i "s|__STORAGE_BUCKET__|$STORAGE_BUCKET_ESCAPED|g" "$file"
+              sed -i "s|__MESSAGING_SENDER_ID__|$MESSAGING_SENDER_ID_ESCAPED|g" "$file"
+              sed -i "s|__APP_ID__|$APP_ID_ESCAPED|g" "$file"
+              echo "Firebase placeholders inyectados en $file"
+            fi
+          done
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
