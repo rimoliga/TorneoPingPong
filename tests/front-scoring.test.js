@@ -164,3 +164,52 @@ test("finishMatch válido define ganador y campeón en final", async () => {
   assert.equal(payload.rounds[0].matches[0].winner, "A");
   assert.equal(payload.champion, "A");
 });
+
+test("solo admin/creador puede iniciar torneo", async () => {
+  const ctx = loadFrontendContext();
+  const hooks = ctx.window.__TEST_HOOKS__;
+  hooks.setCurrentRoomId("ROOM1");
+  hooks.setCurrentIdentity("jugador-no-admin");
+  hooks.setGameState({
+    players: ["owner", "p2", "p3"],
+    creator: "otro-uid",
+    rounds: [],
+  });
+  hooks.clearLastUpdatePayload();
+
+  await ctx.window.startTournament();
+  assert.equal(hooks.getLastUpdatePayload(), null);
+  assert.equal(
+    hooks.getLastToast()?.msg,
+    "Solo el creador/admin puede sortear equipos"
+  );
+});
+
+test("permite votar el mismo partido en torneos distintos", async () => {
+  const ctx = loadFrontendContext();
+  const hooks = ctx.window.__TEST_HOOKS__;
+  hooks.setCurrentRoomId("ROOM1");
+  hooks.setCurrentIdentity("espectador");
+  hooks.setGameState({
+    activeSince: 111,
+    createdAt: "2025-01-01T00:00:00.000Z",
+    rounds: [{ matches: [{ p1: "A", p2: "B", score1: 0, score2: 0, winner: null }] }],
+    votes: {},
+  });
+
+  await ctx.window.voteFor(0, 0, 1);
+  const firstPayload = hooks.getLastUpdatePayload();
+  assert.equal(firstPayload.votes["ROOM1_r0m0"].p1, 1);
+
+  hooks.setGameState({
+    activeSince: 222,
+    createdAt: "2025-01-01T00:00:00.000Z",
+    rounds: [{ matches: [{ p1: "A", p2: "B", score1: 0, score2: 0, winner: null }] }],
+    votes: {},
+  });
+  hooks.clearLastUpdatePayload();
+
+  await ctx.window.voteFor(0, 0, 1);
+  const secondPayload = hooks.getLastUpdatePayload();
+  assert.equal(secondPayload.votes["ROOM1_r0m0"].p1, 1);
+});
