@@ -5,7 +5,7 @@ import { normalizeReadyPlayers } from "./src/domain/readyService.js";
 import { isWinningState, canFinalizeMatch, getWinnerByScore, getCloseMatchHint } from "./src/domain/scoringService.js";
 import { isClaimStaleForPlayer, canUseStoredIdentity, buildClaimPatch, evaluateClaimStatus, getClaimBlockedMessage } from "./src/domain/identityService.js";
 import { buildMatchKey, resolveVoteScope, buildLocalVoteKey, canPlayerVoteMatch, buildNextVotes } from "./src/domain/votingService.js";
-import { buildToggleReadyUpdate, buildTournamentMatches, validateStartTournament, buildStartTournamentConfirmation } from "./src/controllers/roomController.js";
+import { buildToggleReadyUpdate, buildTournamentMatches, validateStartTournament, buildStartTournamentConfirmation, buildTournamentNameUpdate } from "./src/controllers/roomController.js";
 import { applyRoundProgression } from "./src/controllers/matchController.js";
 import { calculateTournamentStats, buildShareableTournamentSummary } from "./src/controllers/statsController.js";
 import { resolveOperatorShortcutAction } from "./src/controllers/operatorShortcutController.js";
@@ -370,6 +370,15 @@ function syncUI() {
     const target = gameState.targetScore || 11; document.getElementById('rulesDisplay').textContent = `A ${target} Puntos`;
 
     const isCreator = isRoomAdmin();
+    const editTournamentBtn = document.getElementById("editTournamentBtn");
+    const editTournamentPanel = document.getElementById("editTournamentPanel");
+    const editTournamentInput = document.getElementById("editTournamentInput");
+    if (editTournamentBtn) {
+        if (isCreator) editTournamentBtn.classList.remove("hidden");
+        else editTournamentBtn.classList.add("hidden");
+    }
+    if (editTournamentPanel && !isCreator) editTournamentPanel.classList.add("hidden");
+    if (editTournamentInput) editTournamentInput.value = gameState.tournamentName || "Torneo sin nombre";
     const themeControl = document.getElementById("roomThemeControl");
     if (themeControl) {
         if (isCreator) themeControl.classList.remove("hidden");
@@ -472,6 +481,30 @@ function calculateAndRenderStats() {
     sortedStats.forEach((s, i) => { const isLeader = i === 0 && s.won > 0; const rowClass = isLeader ? 'bg-yellow-500/20 text-yellow-200' : 'border-b border-slate-700/30 text-slate-300'; const isMe = s.name === currentUserIdentity; tbody.innerHTML += `<tr class="${rowClass}"> <td class="py-2 pl-2 font-mono text-slate-500/70">${i + 1}</td> <td class="py-2 flex items-center gap-2 clickable-name" onclick="showProfileModal('${s.name}')">${getAvatar(s.name, 24)} <span class="${isLeader ? 'font-bold' : ''} ${isMe ? 'me-highlight' : ''}">${s.name}</span></td> <td class="py-2 text-center font-mono">${s.played}</td> <td class="py-2 text-center font-mono font-bold">${s.won}</td> <td class="py-2 text-center font-mono text-xs ${s.diff > 0 ? 'text-green-400' : 'text-red-400'}">${s.diff > 0 ? '+' : ''}${s.diff}</td> </tr>`; });
 }
 window.copyRoomCode = function () { const code = document.getElementById('roomCodeDisplay').textContent; navigator.clipboard.writeText(code).then(() => showToast("Codigo copiado!")); }
+window.openTournamentNameEditor = function () {
+    if (!isRoomAdmin()) return showToast("Solo el creador puede cambiar el nombre del torneo", "error");
+    const panel = document.getElementById("editTournamentPanel");
+    const input = document.getElementById("editTournamentInput");
+    if (input) input.value = gameState.tournamentName || "Torneo sin nombre";
+    if (panel) panel.classList.remove("hidden");
+}
+window.closeTournamentNameEditor = function () {
+    const panel = document.getElementById("editTournamentPanel");
+    if (panel) panel.classList.add("hidden");
+}
+window.saveTournamentName = async function () {
+    const input = document.getElementById("editTournamentInput");
+    const nextName = input?.value || "";
+    const result = buildTournamentNameUpdate({
+        isCreator: isRoomAdmin(),
+        currentName: gameState.tournamentName,
+        nextName,
+    });
+    if (!result.ok) return showToast(result.error, "error");
+    await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { tournamentName: result.tournamentName });
+    closeTournamentNameEditor();
+    showToast("Nombre del torneo actualizado");
+}
 window.updateRoomTheme = async function () {
     if (!isRoomAdmin()) return showToast("Solo el admin puede cambiar el tema", "error");
     const nextTheme = normalizeThemePreset(document.getElementById("roomThemeSelect")?.value);

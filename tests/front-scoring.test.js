@@ -169,6 +169,14 @@ window.__TEST_HOOKS__ = {
       }
       return { ok: true, matches };
     },
+    buildTournamentNameUpdate: ({ isCreator, currentName, nextName }) => {
+      if (!isCreator) return { ok: false, error: "Solo el creador puede cambiar el nombre del torneo" };
+      const normalized = String(nextName || "").trim();
+      if (!normalized) return { ok: false, error: "El nombre del torneo no puede estar vacio" };
+      if (normalized.length > 25) return { ok: false, error: "Maximo 25 caracteres para el nombre del torneo" };
+      if (normalized === String(currentName || "").trim()) return { ok: false, error: "El nombre ya es el actual" };
+      return { ok: true, tournamentName: normalized };
+    },
     validateStartTournament: (players, readyPlayers) => {
       const list = players || [];
       if (list.length < 2) {
@@ -751,6 +759,45 @@ test("copyFinalSummary copia resumen final al portapapeles", async () => {
   assert.equal(ctx.window.__lastClipboardText.includes("Torneo: Viernes"), true);
   assert.equal(ctx.window.__lastClipboardText.includes("Campeon: A"), true);
   assert.equal(hooks.getLastToast()?.msg, "Resumen copiado!");
+});
+
+test("saveTournamentName bloquea si no es creador", async () => {
+  const ctx = loadFrontendContext();
+  const hooks = ctx.window.__TEST_HOOKS__;
+  hooks.setCurrentRoomId("ROOM1");
+  hooks.setCurrentIdentity("viewer");
+  hooks.setGameState({
+    tournamentName: "Viejo",
+    creator: "u-admin",
+    creatorName: "admin",
+    players: ["admin", "viewer"],
+    rounds: [],
+  });
+  ctx.document.getElementById("editTournamentInput").value = "Nuevo";
+  hooks.clearLastUpdatePayload();
+
+  await ctx.window.saveTournamentName();
+  assert.equal(hooks.getLastUpdatePayload(), null);
+  assert.equal(hooks.getLastToast()?.msg, "Solo el creador puede cambiar el nombre del torneo");
+});
+
+test("saveTournamentName actualiza nombre si es creador", async () => {
+  const ctx = loadFrontendContext();
+  const hooks = ctx.window.__TEST_HOOKS__;
+  hooks.setCurrentRoomId("ROOM1");
+  hooks.setCurrentIdentity("admin");
+  hooks.setGameState({
+    tournamentName: "Viejo",
+    creator: "u1",
+    creatorName: "admin",
+    players: ["admin", "viewer"],
+    rounds: [],
+  });
+  ctx.document.getElementById("editTournamentInput").value = "Nuevo";
+  hooks.clearLastUpdatePayload();
+
+  await ctx.window.saveTournamentName();
+  assert.equal(hooks.getLastUpdatePayload().tournamentName, "Nuevo");
 });
 
 test("handleLiveOperatorShortcut suma punto con Digit1 para admin", async () => {

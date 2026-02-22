@@ -22,6 +22,7 @@ La app permite:
 - Mostrar mini celebraciones aleatorias al cerrar cada partido.
 - Mostrar celebración especial y aleatoria para el campeón del torneo.
 - Elegir tema rápido de sala (Arcade/Sunset/Forest) y sincronizarlo en tiempo real.
+- Renombrar torneo en vivo solo por el creador de la sala.
 - Reiniciar torneo guardando estadísticas históricas.
 
 ## 2. Flujo principal de uso

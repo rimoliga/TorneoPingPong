@@ -61,6 +61,18 @@ test("roomController valida readiness y arma partidos", async () => {
   assert.equal(typeof confirmation, "string");
   assert.equal(confirmation.includes("4 jugadores"), true);
   assert.equal(confirmation.includes("11 puntos"), true);
+
+  assert.equal(
+    room.buildTournamentNameUpdate({ isCreator: false, currentName: "A", nextName: "B" }).ok,
+    false
+  );
+  assert.equal(
+    room.buildTournamentNameUpdate({ isCreator: true, currentName: "A", nextName: "   " }).ok,
+    false
+  );
+  const rename = room.buildTournamentNameUpdate({ isCreator: true, currentName: "A", nextName: "Nuevo Torneo" });
+  assert.equal(rename.ok, true);
+  assert.equal(rename.tournamentName, "Nuevo Torneo");
 });
 
 test("setupReadinessView renderiza contadores y estado de botones", async () => {

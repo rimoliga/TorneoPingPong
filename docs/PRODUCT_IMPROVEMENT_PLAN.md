@@ -48,6 +48,7 @@ Roadmap de mejoras para uso propio entre amigos.
 - 2026-02-22: mini celebraciones aleatorias (mensaje + confetti) al terminar cada partido.
 - 2026-02-22: celebracion especial aleatoria para campeon en modal final.
 - 2026-02-22: tema rapido por sala (Arcade/Sunset/Forest) con cambio en vivo para admin.
+- 2026-02-22: renombrar torneo en vivo limitado al creador de la sala.
 
 ## Fase 2: Features Sociales Y Divertidas (Alta Prioridad)
 

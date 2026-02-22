@@ -48,3 +48,21 @@ export function buildStartTournamentConfirmation(players, targetScore) {
     const extra = list.length > 8 ? `, +${list.length - 8} mas` : "";
     return `Se sortearan ${list.length} jugadores a ${safeTarget} puntos. Jugadores: ${preview}${extra}.`;
 }
+
+export function buildTournamentNameUpdate({ isCreator, currentName, nextName }) {
+    if (!isCreator) {
+        return { ok: false, error: "Solo el creador puede cambiar el nombre del torneo" };
+    }
+    const normalized = typeof nextName === "string" ? nextName.trim() : "";
+    if (!normalized) {
+        return { ok: false, error: "El nombre del torneo no puede estar vacio" };
+    }
+    if (normalized.length > 25) {
+        return { ok: false, error: "Maximo 25 caracteres para el nombre del torneo" };
+    }
+    const previous = typeof currentName === "string" ? currentName.trim() : "";
+    if (normalized === previous) {
+        return { ok: false, error: "El nombre ya es el actual" };
+    }
+    return { ok: true, tournamentName: normalized };
+}
