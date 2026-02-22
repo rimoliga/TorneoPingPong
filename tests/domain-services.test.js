@@ -51,6 +51,11 @@ test("roomController valida readiness y arma partidos", async () => {
   assert.equal(built.ok, true);
   assert.equal(Array.isArray(built.matches), true);
   assert.equal(built.matches.length > 0, true);
+
+  const confirmation = room.buildStartTournamentConfirmation(players, 11);
+  assert.equal(typeof confirmation, "string");
+  assert.equal(confirmation.includes("4 jugadores"), true);
+  assert.equal(confirmation.includes("11 puntos"), true);
 });
 
 test("setupReadinessView renderiza contadores y estado de botones", async () => {

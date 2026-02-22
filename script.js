@@ -5,7 +5,7 @@ import { normalizeReadyPlayers } from "./src/domain/readyService.js";
 import { isWinningState, canFinalizeMatch, getWinnerByScore } from "./src/domain/scoringService.js";
 import { isClaimStaleForPlayer, canUseStoredIdentity, buildClaimPatch } from "./src/domain/identityService.js";
 import { buildMatchKey, resolveVoteScope, buildLocalVoteKey, canPlayerVoteMatch, buildNextVotes } from "./src/domain/votingService.js";
-import { buildToggleReadyUpdate, buildTournamentMatches, validateStartTournament } from "./src/controllers/roomController.js";
+import { buildToggleReadyUpdate, buildTournamentMatches, validateStartTournament, buildStartTournamentConfirmation } from "./src/controllers/roomController.js";
 import { applyRoundProgression } from "./src/controllers/matchController.js";
 import { calculateTournamentStats } from "./src/controllers/statsController.js";
 import { collectMyTurnNotifications, detectNewWinners } from "./src/controllers/notificationController.js";
@@ -400,6 +400,7 @@ window.startTournament = async function () {
     const buildResult = buildTournamentMatches(gameState.players);
     if (!buildResult.ok) return showToast(buildResult.error, "error");
     await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { rounds: [{ matches: buildResult.matches }], active: true, activeSince: Date.now(), champion: null, readyPlayers: {} });
+    closeStartTournamentModal();
     playSound('win', 0.2);
 }
 
@@ -437,6 +438,14 @@ window.toggleFullScreen = function () { if (!document.fullscreenElement) documen
 window.handleEnter = (e) => { if (e.key === 'Enter') addPlayer(); };
 window.showResetModal = () => document.getElementById('resetModal').classList.remove('hidden');
 window.closeResetModal = () => document.getElementById('resetModal').classList.add('hidden');
+window.showStartTournamentModal = function () {
+    const validation = validateStartTournament(gameState.players, getReadyPlayers());
+    if (!validation.ok) return showToast(validation.error, "error");
+    const textEl = document.getElementById("startTournamentConfirmText");
+    if (textEl) textEl.textContent = buildStartTournamentConfirmation(gameState.players, gameState.targetScore);
+    document.getElementById('startTournamentModal').classList.remove('hidden');
+}
+window.closeStartTournamentModal = () => document.getElementById('startTournamentModal').classList.add('hidden');
 window.closeWinnerModal = () => { document.getElementById('winnerAnnouncement').classList.add('hidden'); winnerAcknowledged = true; };
 window.showWinnerModal = () => { winnerAcknowledged = false; document.getElementById('winnerAnnouncement').classList.remove('hidden'); };
 

@@ -25,9 +25,10 @@ La app permite:
 3. Cada jugador selecciona o registra su identidad.
 4. Todos marcan `LISTO`.
 5. Se habilita `SORTEAR` cuando `todos listos = true`.
-6. Se juegan partidos desde la vista de bracket / árbitro.
-7. Al terminar, se anuncia campeón.
-8. Se puede reiniciar torneo archivando estadísticas globales.
+6. Al tocar `SORTEAR`, se solicita confirmación corta antes de iniciar.
+7. Se juegan partidos desde la vista de bracket / árbitro.
+8. Al terminar, se anuncia campeón.
+9. Se puede reiniciar torneo archivando estadísticas globales.
 
 ## 3. Roles y permisos
 

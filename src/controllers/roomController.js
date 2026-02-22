@@ -40,3 +40,11 @@ export function validateStartTournament(players, readyPlayers) {
     }
     return { ok: true };
 }
+
+export function buildStartTournamentConfirmation(players, targetScore) {
+    const list = Array.isArray(players) ? players.filter((name) => typeof name === "string" && name.trim().length > 0) : [];
+    const safeTarget = Number.isFinite(Number(targetScore)) && Number(targetScore) > 0 ? Math.floor(Number(targetScore)) : 11;
+    const preview = list.length > 0 ? list.slice(0, 8).join(", ") : "sin jugadores";
+    const extra = list.length > 8 ? `, +${list.length - 8} mas` : "";
+    return `Se sortearan ${list.length} jugadores a ${safeTarget} puntos. Jugadores: ${preview}${extra}.`;
+}

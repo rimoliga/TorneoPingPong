@@ -165,6 +165,8 @@ window.__TEST_HOOKS__ = {
         ? { ok: true }
         : { ok: false, error: "Faltan jugadores por marcarse como listos" };
     },
+    buildStartTournamentConfirmation: (players, targetScore) =>
+      `Se sortearan ${(players || []).length} jugadores a ${targetScore || 11} puntos.`,
     renderSetupReadiness: ({
       players,
       readyPlayers,
@@ -632,6 +634,28 @@ test("startTournament permite sortear cuando todos estan listos", async () => {
   assert.equal(payload.active, true);
   assert.equal(Array.isArray(payload.rounds), true);
   assert.equal(typeof payload.activeSince, "number");
+});
+
+test("showStartTournamentModal abre modal con mensaje", async () => {
+  const ctx = loadFrontendContext();
+  const hooks = ctx.window.__TEST_HOOKS__;
+  hooks.setCurrentIdentity("p1");
+  hooks.setGameState({
+    players: ["p1", "p2"],
+    targetScore: 11,
+    readyPlayers: { p1: true, p2: true },
+    rounds: [],
+  });
+
+  ctx.window.showStartTournamentModal();
+  assert.equal(
+    ctx.document.getElementById("startTournamentModal").classList.contains("hidden"),
+    false
+  );
+  assert.equal(
+    ctx.document.getElementById("startTournamentConfirmText").textContent.includes("2 jugadores"),
+    true
+  );
 });
 
 test("permite votar el mismo partido en torneos distintos", async () => {

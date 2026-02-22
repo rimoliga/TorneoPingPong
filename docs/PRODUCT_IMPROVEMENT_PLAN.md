@@ -11,7 +11,7 @@ Roadmap de mejoras para uso propio entre amigos.
 ## Estado
 
 - Estado global: **ACTIVO**
-- Actualizado: **2026-02-21**
+- Actualizado: **2026-02-22**
 
 ## Principios
 
@@ -37,6 +37,10 @@ Roadmap de mejoras para uso propio entre amigos.
 
 - Un grupo nuevo puede empezar torneo sin explicacion externa.
 - Menos errores manuales al operar el marcador.
+
+### Avances recientes
+
+- 2026-02-22: confirmacion visual previa al sorteo (`SORTEAR`) implementada.
 
 ## Fase 2: Features Sociales Y Divertidas (Alta Prioridad)
 
