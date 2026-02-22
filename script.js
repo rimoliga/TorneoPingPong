@@ -7,7 +7,7 @@ import { isClaimStaleForPlayer, canUseStoredIdentity, buildClaimPatch } from "./
 import { buildMatchKey, resolveVoteScope, buildLocalVoteKey, canPlayerVoteMatch, buildNextVotes } from "./src/domain/votingService.js";
 import { buildToggleReadyUpdate, buildTournamentMatches, validateStartTournament, buildStartTournamentConfirmation } from "./src/controllers/roomController.js";
 import { applyRoundProgression } from "./src/controllers/matchController.js";
-import { calculateTournamentStats } from "./src/controllers/statsController.js";
+import { calculateTournamentStats, buildShareableTournamentSummary } from "./src/controllers/statsController.js";
 import { collectMyTurnNotifications, detectNewWinners } from "./src/controllers/notificationController.js";
 import { calculatePlayerPerformance, getGlobalPlayerStats, getProfileBadgeSets, buildBracketBadgesHtml } from "./src/controllers/profileController.js";
 import { getFallbackFirebaseConfig, resolveFirebaseConfig, connectFirebase } from "./src/app/bootstrap.js";
@@ -434,6 +434,23 @@ function calculateAndRenderStats() {
     sortedStats.forEach((s, i) => { const isLeader = i === 0 && s.won > 0; const rowClass = isLeader ? 'bg-yellow-500/20 text-yellow-200' : 'border-b border-slate-700/30 text-slate-300'; const isMe = s.name === currentUserIdentity; tbody.innerHTML += `<tr class="${rowClass}"> <td class="py-2 pl-2 font-mono text-slate-500/70">${i + 1}</td> <td class="py-2 flex items-center gap-2 clickable-name" onclick="showProfileModal('${s.name}')">${getAvatar(s.name, 24)} <span class="${isLeader ? 'font-bold' : ''} ${isMe ? 'me-highlight' : ''}">${s.name}</span></td> <td class="py-2 text-center font-mono">${s.played}</td> <td class="py-2 text-center font-mono font-bold">${s.won}</td> <td class="py-2 text-center font-mono text-xs ${s.diff > 0 ? 'text-green-400' : 'text-red-400'}">${s.diff > 0 ? '+' : ''}${s.diff}</td> </tr>`; });
 }
 window.copyRoomCode = function () { const code = document.getElementById('roomCodeDisplay').textContent; navigator.clipboard.writeText(code).then(() => showToast("Codigo copiado!")); }
+window.copyFinalSummary = async function () {
+    const summary = buildShareableTournamentSummary({
+        tournamentName: gameState.tournamentName,
+        targetScore: gameState.targetScore,
+        champion: gameState.champion,
+        players: gameState.players,
+        rounds: gameState.rounds,
+        roomCode: currentRoomId,
+    });
+    if (!navigator?.clipboard?.writeText) return showToast("Clipboard no disponible", "error");
+    try {
+        await navigator.clipboard.writeText(summary);
+        showToast("Resumen copiado!");
+    } catch (_error) {
+        showToast("No se pudo copiar", "error");
+    }
+}
 window.toggleFullScreen = function () { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => console.log(e)); else if (document.exitFullscreen) document.exitFullscreen(); }
 window.handleEnter = (e) => { if (e.key === 'Enter') addPlayer(); };
 window.showResetModal = () => document.getElementById('resetModal').classList.remove('hidden');

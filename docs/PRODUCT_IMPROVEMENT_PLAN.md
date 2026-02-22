@@ -42,6 +42,7 @@ Roadmap de mejoras para uso propio entre amigos.
 
 - 2026-02-22: confirmacion visual previa al sorteo (`SORTEAR`) implementada.
 - 2026-02-22: estado textual en vivo para indicar cuando un partido se puede cerrar y que falta para finalizar.
+- 2026-02-22: resumen final compartible en 1 click (portapapeles) desde anuncio de campeon.
 
 ## Fase 2: Features Sociales Y Divertidas (Alta Prioridad)
 

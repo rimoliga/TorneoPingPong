@@ -17,6 +17,7 @@ La app permite:
 - Ejecutar revisión tipo VAR (overlay visual).
 - Votar por ganador de partidos (1 voto por partido y por torneo).
 - Ver tabla de posiciones y métricas por jugador.
+- Copiar resumen final del torneo en 1 click para compartir.
 - Reiniciar torneo guardando estadísticas históricas.
 
 ## 2. Flujo principal de uso

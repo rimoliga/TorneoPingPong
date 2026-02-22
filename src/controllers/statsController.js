@@ -26,3 +26,34 @@ export function calculateTournamentStats(players, rounds) {
         return b.diff - a.diff;
     });
 }
+
+export function buildShareableTournamentSummary({
+    tournamentName,
+    targetScore,
+    champion,
+    players,
+    rounds,
+    roomCode,
+    maxRows = 4,
+}) {
+    const safeName = (tournamentName || "Torneo sin nombre").trim();
+    const safeTarget = Number.isFinite(Number(targetScore)) && Number(targetScore) > 0 ? Math.floor(Number(targetScore)) : 11;
+    const safeChampion = champion || "Por definir";
+    const safeRoom = roomCode || "----";
+    const rows = calculateTournamentStats(players || [], rounds || []).slice(0, Math.max(1, maxRows));
+
+    const lines = [
+        `Torneo: ${safeName}`,
+        `Campeon: ${safeChampion}`,
+        `Formato: a ${safeTarget} puntos`,
+        `Sala: ${safeRoom}`,
+        "",
+        "Tabla final:",
+    ];
+    rows.forEach((row, idx) => {
+        const diff = row.diff > 0 ? `+${row.diff}` : `${row.diff}`;
+        lines.push(`${idx + 1}. ${row.name} | PG ${row.won} | PJ ${row.played} | DIF ${diff}`);
+    });
+
+    return lines.join("\n");
+}

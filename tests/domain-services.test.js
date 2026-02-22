@@ -182,6 +182,19 @@ test("statsController calcula y ordena tabla", async () => {
   assert.equal(sorted[1].name, "A");
   assert.equal(sorted[1].played, 2);
   assert.equal(sorted[2].name, "B");
+
+  const summary = statsController.buildShareableTournamentSummary({
+    tournamentName: "Friday Cup",
+    targetScore: 11,
+    champion: "C",
+    players,
+    rounds,
+    roomCode: "ABCD",
+  });
+  assert.equal(summary.includes("Torneo: Friday Cup"), true);
+  assert.equal(summary.includes("Campeon: C"), true);
+  assert.equal(summary.includes("Sala: ABCD"), true);
+  assert.equal(summary.includes("1. C | PG 1"), true);
 });
 
 test("bracketView renderiza ronda y tarjetas", async () => {

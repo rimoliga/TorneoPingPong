@@ -59,7 +59,14 @@ window.__TEST_HOOKS__ = {
       return 0;
     },
     clearTimeout: () => {},
-    navigator: { vibrate: () => {} },
+    navigator: {
+      vibrate: () => {},
+      clipboard: {
+        writeText: async (text) => {
+          context.window.__lastClipboardText = text;
+        },
+      },
+    },
     confetti: () => {},
     crypto: { randomUUID: () => "uuid-test" },
     localStorage: {
@@ -299,6 +306,25 @@ window.__TEST_HOOKS__ = {
         return b.diff - a.diff;
       });
     },
+    buildShareableTournamentSummary: ({
+      tournamentName,
+      targetScore,
+      champion,
+      players,
+      rounds,
+      roomCode,
+    }) => {
+      const table = context.calculateTournamentStats(players || [], rounds || []);
+      return [
+        `Torneo: ${tournamentName || "Torneo sin nombre"}`,
+        `Campeon: ${champion || "Por definir"}`,
+        `Formato: a ${targetScore || 11} puntos`,
+        `Sala: ${roomCode || "----"}`,
+        "",
+        "Tabla final:",
+        ...(table || []).slice(0, 4).map((r, idx) => `${idx + 1}. ${r.name}`),
+      ].join("\n");
+    },
     renderLiveMatchHeader: ({ documentRef, match }) => {
       if (!documentRef || !match) return;
       documentRef.getElementById("liveP1Name").textContent = match.p1;
@@ -529,6 +555,7 @@ window.__TEST_HOOKS__ = {
   context.window.DB_PATH_PREFIX = "tests/path";
   context.window.__lastToast = null;
   context.window.__lastUpdatePayload = null;
+  context.window.__lastClipboardText = null;
 
   vm.runInNewContext(source, context, { filename: "script.js" });
   context.window.showToast = (msg, type) => {
@@ -662,6 +689,24 @@ test("showStartTournamentModal abre modal con mensaje", async () => {
     ctx.document.getElementById("startTournamentConfirmText").textContent.includes("2 jugadores"),
     true
   );
+});
+
+test("copyFinalSummary copia resumen final al portapapeles", async () => {
+  const ctx = loadFrontendContext();
+  const hooks = ctx.window.__TEST_HOOKS__;
+  hooks.setCurrentRoomId("ROOM1");
+  hooks.setGameState({
+    tournamentName: "Viernes",
+    targetScore: 11,
+    champion: "A",
+    players: ["A", "B"],
+    rounds: [{ matches: [{ p1: "A", p2: "B", score1: 11, score2: 9, winner: "A", isBye: false }] }],
+  });
+
+  await ctx.window.copyFinalSummary();
+  assert.equal(ctx.window.__lastClipboardText.includes("Torneo: Viernes"), true);
+  assert.equal(ctx.window.__lastClipboardText.includes("Campeon: A"), true);
+  assert.equal(hooks.getLastToast()?.msg, "Resumen copiado!");
 });
 
 test("permite votar el mismo partido en torneos distintos", async () => {
