@@ -76,6 +76,7 @@ window.__TEST_HOOKS__ = {
     },
     document: {
       getElementById,
+      body: createElementStub(),
       fullscreenElement: null,
       documentElement: { requestFullscreen: async () => {} },
       exitFullscreen: async () => {},
@@ -532,6 +533,20 @@ window.__TEST_HOOKS__ = {
       if (event.code === "Escape") return "close_modal";
       return null;
     },
+    selectMatchCelebration: ({ winner }) => ({
+      message: `${winner} se llevo este partido!`,
+      confetti: { particleCount: 90, spread: 60, origin: { y: 0.65 } },
+    }),
+    selectChampionCelebration: (champion) => ({
+      message: `${champion} se aduena de la noche!`,
+      confetti: { particleCount: 180, spread: 120, origin: { y: 0.58 } },
+    }),
+    normalizeThemePreset: (preset) => {
+      const allowed = new Set(["arcade", "sunset", "forest"]);
+      const p = String(preset || "").toLowerCase();
+      return allowed.has(p) ? p : "arcade";
+    },
+    getThemeCssClass: (preset) => `theme-${["arcade", "sunset", "forest"].includes(String(preset || "").toLowerCase()) ? String(preset).toLowerCase() : "arcade"}`,
     calculatePlayerPerformance: (rounds, playerName, targetScore) => {
       let played = 0;
       let won = 0;
@@ -656,6 +671,7 @@ test("finishMatch válido define ganador y campeón en final", async () => {
   const payload = hooks.getLastUpdatePayload();
   assert.equal(payload.rounds[0].matches[0].winner, "A");
   assert.equal(payload.champion, "A");
+  assert.equal(hooks.getLastToast()?.msg.includes("A"), true);
 });
 
 test("startTournament bloquea si no estan todos listos", async () => {

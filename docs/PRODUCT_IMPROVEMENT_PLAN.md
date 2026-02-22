@@ -45,6 +45,9 @@ Roadmap de mejoras para uso propio entre amigos.
 - 2026-02-22: resumen final compartible en 1 click (portapapeles) desde anuncio de campeon.
 - 2026-02-22: mensajes claros al reclamar identidad ocupada, con tiempo estimado de reintento.
 - 2026-02-22: atajos de operador en vivo para carga rapida de puntos y cierre de partido.
+- 2026-02-22: mini celebraciones aleatorias (mensaje + confetti) al terminar cada partido.
+- 2026-02-22: celebracion especial aleatoria para campeon en modal final.
+- 2026-02-22: tema rapido por sala (Arcade/Sunset/Forest) con cambio en vivo para admin.
 
 ## Fase 2: Features Sociales Y Divertidas (Alta Prioridad)
 

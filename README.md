@@ -19,6 +19,9 @@ La app permite:
 - Votar por ganador de partidos (1 voto por partido y por torneo).
 - Ver tabla de posiciones y métricas por jugador.
 - Copiar resumen final del torneo en 1 click para compartir.
+- Mostrar mini celebraciones aleatorias al cerrar cada partido.
+- Mostrar celebración especial y aleatoria para el campeón del torneo.
+- Elegir tema rápido de sala (Arcade/Sunset/Forest) y sincronizarlo en tiempo real.
 - Reiniciar torneo guardando estadísticas históricas.
 
 ## 2. Flujo principal de uso
@@ -190,6 +193,7 @@ Documento de sala (colección base: `artifacts/{appId}/public/data/tournaments/{
 - `globalStats: { [playerName]: { played: number, won: number, tourneys: number } }`
 - `creator: string` (uid)
 - `creatorName: string | null`
+- `themePreset: "arcade" | "sunset" | "forest"`
 - `createdAt: ISO string`
 
 ## 12. Deploy (GitHub Pages)

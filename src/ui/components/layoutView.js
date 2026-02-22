@@ -34,8 +34,13 @@ export function syncChampionAnnouncement(documentRef, state, handlers) {
         if (!state.winnerAcknowledged && modal.classList.contains("hidden")) {
             modal.classList.remove("hidden");
             documentRef.getElementById("winnerText").textContent = state.champion;
+            const championCelebration = typeof handlers.getChampionCelebration === "function"
+                ? handlers.getChampionCelebration(state.champion)
+                : { message: `${state.champion} es campeon!`, confetti: { particleCount: 150, spread: 100 } };
+            const subtitle = documentRef.getElementById("winnerSubtext");
+            if (subtitle) subtitle.textContent = championCelebration.message;
             documentRef.getElementById("winnerAvatarLarge").innerHTML = handlers.getAvatar(state.champion, 80);
-            handlers.confetti({ particleCount: 150, spread: 100 });
+            handlers.confetti(championCelebration.confetti);
             handlers.playSound("win", 0.3);
         }
         return state.winnerAcknowledged;

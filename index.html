@@ -25,6 +25,21 @@
             user-select: none;
         }
 
+        body.theme-arcade {
+            background-color: #0f172a;
+            background-image: radial-gradient(#1e293b 15%, transparent 16%), radial-gradient(#1e293b 15%, transparent 16%);
+        }
+
+        body.theme-sunset {
+            background-color: #2a1022;
+            background-image: radial-gradient(#4a1f3d 14%, transparent 15%), radial-gradient(#3b182f 14%, transparent 15%);
+        }
+
+        body.theme-forest {
+            background-color: #0d1f1c;
+            background-image: radial-gradient(#1a3a33 14%, transparent 15%), radial-gradient(#17322c 14%, transparent 15%);
+        }
+
         .comic-font {
             font-family: 'Bangers', cursive;
             letter-spacing: 2px;
@@ -230,7 +245,7 @@
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center p-2 md:p-4 overflow-x-hidden transition-colors duration-500">
+<body class="theme-arcade min-h-screen flex flex-col items-center p-2 md:p-4 overflow-x-hidden transition-colors duration-500">
 
     <div
         class="fixed top-0 right-0 bg-blue-950/80 backdrop-blur text-blue-300 text-[10px] px-2 py-1 z-50 font-mono border-b border-l border-blue-500/30 rounded-bl-lg flex gap-2 items-center">
@@ -298,6 +313,15 @@
                             class="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white text-center font-mono font-bold focus:ring-2 focus:ring-orange-400">
                         <div class="absolute right-2 top-2 text-slate-500 text-xs pointer-events-none">PTS</div>
                     </div>
+                </div>
+                <div class="flex-1">
+                    <label class="text-xs text-cyan-400 ml-1 uppercase font-bold">Tema Rápido</label>
+                    <select id="themePresetInput"
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-white text-center font-mono font-bold focus:ring-2 focus:ring-orange-400">
+                        <option value="arcade">Arcade</option>
+                        <option value="sunset">Sunset</option>
+                        <option value="forest">Forest</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -374,8 +398,20 @@
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2"><i
                     class="fas fa-users text-cyan-400"></i> Jugadores</h2>
-            <span class="text-xs text-cyan-300 bg-slate-900/40 px-2 py-1 rounded border border-cyan-500/20"
-                id="rulesDisplay">A 11 Puntos</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-cyan-300 bg-slate-900/40 px-2 py-1 rounded border border-cyan-500/20"
+                    id="rulesDisplay">A 11 Puntos</span>
+                <div id="roomThemeControl" class="hidden flex items-center gap-1">
+                    <select id="roomThemeSelect"
+                        class="bg-slate-900/60 border border-slate-700 rounded px-2 py-1 text-[10px] text-slate-200 font-mono">
+                        <option value="arcade">Arcade</option>
+                        <option value="sunset">Sunset</option>
+                        <option value="forest">Forest</option>
+                    </select>
+                    <button onclick="updateRoomTheme()"
+                        class="text-[10px] bg-cyan-700/60 hover:bg-cyan-600 text-white font-bold px-2 py-1 rounded border border-cyan-400/30">Aplicar</button>
+                </div>
+            </div>
         </div>
 
         <div class="flex gap-2 mb-4">
@@ -664,6 +700,7 @@
                 <div id="winnerAvatarLarge" class="transform scale-150"></div>
             </div>
             <div class="text-4xl font-bold text-white mb-6 comic-font" id="winnerText">NOMBRE</div>
+            <p id="winnerSubtext" class="text-sm text-yellow-100/90 mb-5 font-bold">Celebracion de campeon</p>
             <div class="flex flex-col gap-3 w-full">
                 <button onclick="copyFinalSummary()"
                     class="bg-cyan-600/20 border border-cyan-400/50 text-cyan-100 hover:bg-cyan-500/30 font-bold py-3 px-8 rounded-full w-full transition-colors">Copiar

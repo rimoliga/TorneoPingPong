@@ -438,10 +438,16 @@ test("layoutView sincroniza secciones, live modal y campeon", async () => {
   const winnerAck = layoutView.syncChampionAnnouncement(
     doc,
     { champion: "A", winnerAcknowledged: false },
-    { getAvatar: () => "avatar", confetti: () => {}, playSound: () => {} }
+    {
+      getAvatar: () => "avatar",
+      confetti: () => {},
+      playSound: () => {},
+      getChampionCelebration: () => ({ message: "A domina la mesa", confetti: { particleCount: 99, spread: 88 } }),
+    }
   );
   assert.equal(winnerAck, false);
   assert.equal(doc.getElementById("winnerText").textContent, "A");
+  assert.equal(doc.getElementById("winnerSubtext").textContent, "A domina la mesa");
 });
 
 test("profileController calcula stats y badges", async () => {
@@ -509,4 +515,33 @@ test("operatorShortcutController resuelve atajos solo en contexto valido", async
     shortcuts.resolveOperatorShortcutAction(baseEvent, { isLiveModalOpen: false, isRoomAdmin: true }),
     null
   );
+});
+
+test("celebrationController devuelve mensaje y confetti para cierre de partido", async () => {
+  const celebration = await importModule("src/controllers/celebrationController.js");
+  const out = celebration.selectMatchCelebration(
+    { winner: "A", loser: "B", isFinal: false, isThirdPlace: false },
+    () => 0
+  );
+  assert.equal(typeof out.message, "string");
+  assert.equal(out.message.includes("A"), true);
+  assert.equal(typeof out.confetti.particleCount, "number");
+
+  const finalOut = celebration.selectMatchCelebration(
+    { winner: "A", loser: "B", isFinal: true },
+    () => 0
+  );
+  assert.equal(finalOut.message.includes("A"), true);
+
+  const championOut = celebration.selectChampionCelebration("A", () => 0);
+  assert.equal(championOut.message.includes("A"), true);
+  assert.equal(typeof championOut.confetti.particleCount, "number");
+});
+
+test("themeController normaliza preset y devuelve clase CSS", async () => {
+  const theme = await importModule("src/controllers/themeController.js");
+  assert.equal(theme.normalizeThemePreset("sunset"), "sunset");
+  assert.equal(theme.normalizeThemePreset("unknown"), "arcade");
+  assert.equal(theme.getThemeCssClass("forest"), "theme-forest");
+  assert.equal(Array.isArray(theme.getAllowedThemePresets()), true);
 });

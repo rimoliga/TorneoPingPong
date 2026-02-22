@@ -9,6 +9,8 @@ import { buildToggleReadyUpdate, buildTournamentMatches, validateStartTournament
 import { applyRoundProgression } from "./src/controllers/matchController.js";
 import { calculateTournamentStats, buildShareableTournamentSummary } from "./src/controllers/statsController.js";
 import { resolveOperatorShortcutAction } from "./src/controllers/operatorShortcutController.js";
+import { selectMatchCelebration, selectChampionCelebration } from "./src/controllers/celebrationController.js";
+import { normalizeThemePreset, getThemeCssClass } from "./src/controllers/themeController.js";
 import { collectMyTurnNotifications, detectNewWinners } from "./src/controllers/notificationController.js";
 import { calculatePlayerPerformance, getGlobalPlayerStats, getProfileBadgeSets, buildBracketBadgesHtml } from "./src/controllers/profileController.js";
 import { getFallbackFirebaseConfig, resolveFirebaseConfig, connectFirebase } from "./src/app/bootstrap.js";
@@ -39,7 +41,7 @@ localStorage.setItem('p_pong_client_id', clientUUID);
 const CLAIM_STALE_MS = 2 * 60 * 1000;
 const CLAIM_HEARTBEAT_MS = 30 * 1000;
 
-let gameState = { tournamentName: "Torneo sin nombre", targetScore: 11, players: [], playerMeta: {}, claims: {}, claimsMeta: {}, rounds: [], votes: {}, varTrigger: 0, active: false, champion: null, globalStats: {}, readyPlayers: {}, creatorName: null };
+let gameState = { tournamentName: "Torneo sin nombre", targetScore: 11, players: [], playerMeta: {}, claims: {}, claimsMeta: {}, rounds: [], votes: {}, varTrigger: 0, active: false, champion: null, globalStats: {}, readyPlayers: {}, creatorName: null, themePreset: "arcade" };
 
 // --- UTILS DECLARATIONS ---
 function getAvatar(name, size = 24) { const seed = name.replace(/\s/g, ''); const url = `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${seed}&backgroundColor=transparent`; return `<img src="${url}" width="${size}" height="${size}" class="rounded-full bg-white/10 avatar-img" alt="${name}">`; }
@@ -88,6 +90,14 @@ function getReadyPlayers() {
 }
 
 function getClaimsMeta() { return gameState.claimsMeta || {}; }
+function applyRoomTheme() {
+    const body = document.body;
+    if (!body?.classList) return;
+    body.classList.remove("theme-arcade", "theme-sunset", "theme-forest");
+    body.classList.add(getThemeCssClass(gameState.themePreset));
+    const roomThemeSelect = document.getElementById("roomThemeSelect");
+    if (roomThemeSelect) roomThemeSelect.value = normalizeThemePreset(gameState.themePreset);
+}
 function isClaimStale(name) {
     return isClaimStaleForPlayer(name, gameState.claims, getClaimsMeta(), clientUUID, CLAIM_STALE_MS);
 }
@@ -296,6 +306,7 @@ window.createRoom = async function () {
     const tName = document.getElementById('tourneyNameInput').value || "Torneo sin nombre";
     const cName = document.getElementById('creatorNameInput').value.trim();
     const target = parseInt(document.getElementById('pointsInput').value) || 11;
+    const themePreset = normalizeThemePreset(document.getElementById("themePresetInput")?.value);
 
     const initialPlayers = cName ? [cName] : [];
     const initialClaims = {};
@@ -323,7 +334,8 @@ window.createRoom = async function () {
             readyPlayers: initialReadyPlayers,
             createdAt: new Date().toISOString(),
             creator: auth.currentUser.uid,
-            creatorName: cName || null
+            creatorName: cName || null,
+            themePreset
         });
 
         if (cName) localStorage.setItem(`p_pong_identity_${code}`, cName);
@@ -343,7 +355,7 @@ function enterRoom(code) {
             if (gameState.active && previousRounds && newData.rounds) checkForNewWinners(newData.rounds);
             if (newData.varTrigger && newData.varTrigger > lastVarTime) { lastVarTime = newData.varTrigger; playVarAnimation(); }
             gameState = newData;
-            if (!gameState.votes) gameState.votes = {}; if (!gameState.playerMeta) gameState.playerMeta = {}; if (!gameState.claims) gameState.claims = {}; if (!gameState.claimsMeta) gameState.claimsMeta = {}; if (!gameState.globalStats) gameState.globalStats = {}; if (!gameState.readyPlayers) gameState.readyPlayers = {};
+            if (!gameState.votes) gameState.votes = {}; if (!gameState.playerMeta) gameState.playerMeta = {}; if (!gameState.claims) gameState.claims = {}; if (!gameState.claimsMeta) gameState.claimsMeta = {}; if (!gameState.globalStats) gameState.globalStats = {}; if (!gameState.readyPlayers) gameState.readyPlayers = {}; if (!gameState.themePreset) gameState.themePreset = "arcade";
             if (gameState.rounds) previousRounds = JSON.parse(JSON.stringify(gameState.rounds));
             syncUI(); checkMyTurn();
         } else { showToast("Sala no encontrada", "error"); exitRoom(); }
@@ -353,16 +365,22 @@ function exitRoom() { stopClaimHeartbeat(); currentRoomId = null; currentUserIde
 
 function syncUI() {
     if (!currentUserIdentity) { if (!checkIdentity()) return; }
+    applyRoomTheme();
     if (gameState.tournamentName) document.getElementById('mainTitle').innerHTML = gameState.tournamentName.toUpperCase().replace(' ', '<br>');
     const target = gameState.targetScore || 11; document.getElementById('rulesDisplay').textContent = `A ${target} Puntos`;
 
     const isCreator = isRoomAdmin();
+    const themeControl = document.getElementById("roomThemeControl");
+    if (themeControl) {
+        if (isCreator) themeControl.classList.remove("hidden");
+        else themeControl.classList.add("hidden");
+    }
 
     const resetBtn = document.getElementById('resetBtn'); if (isCreator) resetBtn.classList.remove('hidden'); else resetBtn.classList.add('hidden');
     const winnerResetBtn = document.getElementById('winnerResetBtn'); if (isCreator) winnerResetBtn.classList.remove('hidden'); else winnerResetBtn.classList.add('hidden');
     renderSetupOrBracketView(document, { active: gameState.active, isCreator, currentUserIdentity }, { renderFeaturedMatch, renderBracket, renderPlayerList });
     syncLiveMatchModal(document, gameState.rounds, liveMatchIndices, { updateLiveMatchUI, closeLiveMatch });
-    winnerAcknowledged = syncChampionAnnouncement(document, { champion: gameState.champion, winnerAcknowledged }, { getAvatar, confetti, playSound });
+    winnerAcknowledged = syncChampionAnnouncement(document, { champion: gameState.champion, winnerAcknowledged }, { getAvatar, confetti, playSound, getChampionCelebration: (champion) => selectChampionCelebration(champion, Math.random) });
     if (!document.getElementById('statsModal').classList.contains('hidden')) calculateAndRenderStats();
 }
 
@@ -422,6 +440,18 @@ window.finishMatch = async function (rIdx, mIdx) {
     if (match.score1 === match.score2) return showToast("No empates", "error");
     if (!canFinalizeMatch(match.score1, match.score2, target)) return showToast(`Debe llegar a ${target} con 2 de diferencia`, "error");
     match.winner = getWinnerByScore(match.p1, match.p2, match.score1, match.score2);
+    const loser = match.winner === match.p1 ? match.p2 : match.p1;
+    const celebration = selectMatchCelebration(
+        {
+            winner: match.winner,
+            loser,
+            isFinal: gameState.players.length === 2 || rIdx === (Math.ceil(Math.log2(gameState.players.length)) - 1),
+            isThirdPlace: !!match.isThirdPlace,
+        },
+        Math.random
+    );
+    showToast(celebration.message);
+    confetti(celebration.confetti);
     playSound('win');
     const progression = applyRoundProgression(rounds, gameState.players.length, rIdx);
     await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { rounds: progression.rounds, champion: progression.champion });
@@ -442,6 +472,13 @@ function calculateAndRenderStats() {
     sortedStats.forEach((s, i) => { const isLeader = i === 0 && s.won > 0; const rowClass = isLeader ? 'bg-yellow-500/20 text-yellow-200' : 'border-b border-slate-700/30 text-slate-300'; const isMe = s.name === currentUserIdentity; tbody.innerHTML += `<tr class="${rowClass}"> <td class="py-2 pl-2 font-mono text-slate-500/70">${i + 1}</td> <td class="py-2 flex items-center gap-2 clickable-name" onclick="showProfileModal('${s.name}')">${getAvatar(s.name, 24)} <span class="${isLeader ? 'font-bold' : ''} ${isMe ? 'me-highlight' : ''}">${s.name}</span></td> <td class="py-2 text-center font-mono">${s.played}</td> <td class="py-2 text-center font-mono font-bold">${s.won}</td> <td class="py-2 text-center font-mono text-xs ${s.diff > 0 ? 'text-green-400' : 'text-red-400'}">${s.diff > 0 ? '+' : ''}${s.diff}</td> </tr>`; });
 }
 window.copyRoomCode = function () { const code = document.getElementById('roomCodeDisplay').textContent; navigator.clipboard.writeText(code).then(() => showToast("Codigo copiado!")); }
+window.updateRoomTheme = async function () {
+    if (!isRoomAdmin()) return showToast("Solo el admin puede cambiar el tema", "error");
+    const nextTheme = normalizeThemePreset(document.getElementById("roomThemeSelect")?.value);
+    if (nextTheme === normalizeThemePreset(gameState.themePreset)) return;
+    await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { themePreset: nextTheme });
+    showToast("Tema actualizado");
+}
 window.copyFinalSummary = async function () {
     const summary = buildShareableTournamentSummary({
         tournamentName: gameState.tournamentName,
