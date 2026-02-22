@@ -217,6 +217,12 @@ Plan tecnico incremental documentado en:
 
 - `docs/RESTRUCTURE_PLAN.md`
 
+Estado actual:
+
+- Reestructuracion: **completada** (cierre 2026-02-21)
+- Roadmap de producto vigente:
+  - `docs/PRODUCT_IMPROVEMENT_PLAN.md`
+
 ## 14. Troubleshooting rápido
 
 - `No conecta / Falta Config`:

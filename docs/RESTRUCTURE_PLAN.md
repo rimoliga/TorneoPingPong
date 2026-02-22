@@ -17,6 +17,7 @@ Plan incremental para separar responsabilidades en el frontend y mantener deploy
 ## Estado general del plan
 
 - Estado global: **COMPLETADO**.
+- Fecha de cierre: **2026-02-21**.
 - Progreso actual:
   - Ajuste de deploy: **completado**
   - Fase 1 (dominio y tests): **completado**
@@ -152,3 +153,13 @@ Estado: completado
   - Mitigacion: workflow ya preparado para multiples archivos.
 - Riesgo: regresion en reglas de torneo.
   - Mitigacion: ampliar tests de dominio antes de mover UI.
+
+## Cierre
+
+- Plan finalizado end-to-end.
+- Entregables completados:
+  - modularizacion de dominio, servicios, controladores y vistas
+  - bootstrap desacoplado
+  - cobertura de tests extendida y estable
+- El siguiente ciclo de trabajo queda en:
+  - `docs/PRODUCT_IMPROVEMENT_PLAN.md`
