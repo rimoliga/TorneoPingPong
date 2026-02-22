@@ -8,6 +8,7 @@ import { buildMatchKey, resolveVoteScope, buildLocalVoteKey, canPlayerVoteMatch,
 import { buildToggleReadyUpdate, buildTournamentMatches, validateStartTournament, buildStartTournamentConfirmation } from "./src/controllers/roomController.js";
 import { applyRoundProgression } from "./src/controllers/matchController.js";
 import { calculateTournamentStats, buildShareableTournamentSummary } from "./src/controllers/statsController.js";
+import { resolveOperatorShortcutAction } from "./src/controllers/operatorShortcutController.js";
 import { collectMyTurnNotifications, detectNewWinners } from "./src/controllers/notificationController.js";
 import { calculatePlayerPerformance, getGlobalPlayerStats, getProfileBadgeSets, buildBracketBadgesHtml } from "./src/controllers/profileController.js";
 import { getFallbackFirebaseConfig, resolveFirebaseConfig, connectFirebase } from "./src/app/bootstrap.js";
@@ -472,6 +473,20 @@ window.showStartTournamentModal = function () {
 window.closeStartTournamentModal = () => document.getElementById('startTournamentModal').classList.add('hidden');
 window.closeWinnerModal = () => { document.getElementById('winnerAnnouncement').classList.add('hidden'); winnerAcknowledged = true; };
 window.showWinnerModal = () => { winnerAcknowledged = false; document.getElementById('winnerAnnouncement').classList.remove('hidden'); };
+window.handleLiveOperatorShortcut = async function (event) {
+    const liveModalOpen = !document.getElementById("liveMatchModal").classList.contains("hidden");
+    const action = resolveOperatorShortcutAction(event, { isLiveModalOpen: liveModalOpen, isRoomAdmin: isRoomAdmin() });
+    if (!action) return;
+    if (typeof event.preventDefault === "function") event.preventDefault();
+
+    if (action === "p1_plus") return liveScore(1, 1);
+    if (action === "p2_plus") return liveScore(2, 1);
+    if (action === "p1_minus") return liveScore(1, -1);
+    if (action === "p2_minus") return liveScore(2, -1);
+    if (action === "finish_match") return finishLiveMatch();
+    if (action === "close_modal") return closeLiveMatch();
+};
+document.addEventListener("keydown", window.handleLiveOperatorShortcut);
 
 function renderBracket() {
     const container = document.getElementById('roundsContainer');

@@ -80,6 +80,7 @@ window.__TEST_HOOKS__ = {
       documentElement: { requestFullscreen: async () => {} },
       exitFullscreen: async () => {},
       createElement: () => createElementStub(),
+      addEventListener: () => {},
     },
     window: {},
     initializeApp: () => ({}),
@@ -521,6 +522,16 @@ window.__TEST_HOOKS__ = {
       modal.classList.add("hidden");
       return false;
     },
+    resolveOperatorShortcutAction: (event, { isLiveModalOpen, isRoomAdmin }) => {
+      if (!event || !isLiveModalOpen || !isRoomAdmin) return null;
+      if (event.code === "Digit1") return "p1_plus";
+      if (event.code === "Digit2") return "p2_plus";
+      if (event.code === "KeyQ") return "p1_minus";
+      if (event.code === "KeyW") return "p2_minus";
+      if (event.code === "Enter") return "finish_match";
+      if (event.code === "Escape") return "close_modal";
+      return null;
+    },
     calculatePlayerPerformance: (rounds, playerName, targetScore) => {
       let played = 0;
       let won = 0;
@@ -724,6 +735,34 @@ test("copyFinalSummary copia resumen final al portapapeles", async () => {
   assert.equal(ctx.window.__lastClipboardText.includes("Torneo: Viernes"), true);
   assert.equal(ctx.window.__lastClipboardText.includes("Campeon: A"), true);
   assert.equal(hooks.getLastToast()?.msg, "Resumen copiado!");
+});
+
+test("handleLiveOperatorShortcut suma punto con Digit1 para admin", async () => {
+  const ctx = loadFrontendContext();
+  const hooks = ctx.window.__TEST_HOOKS__;
+  hooks.setCurrentRoomId("ROOM1");
+  hooks.setCurrentIdentity("p1");
+  hooks.setGameState({
+    players: ["p1", "p2"],
+    targetScore: 11,
+    champion: null,
+    rounds: [{ matches: [{ p1: "p1", p2: "p2", score1: 0, score2: 0, winner: null }] }],
+    votes: {},
+  });
+  hooks.setLiveMatchIndices({ rIdx: 0, mIdx: 0 });
+  ctx.document.getElementById("liveMatchModal").classList.remove("hidden");
+  hooks.clearLastUpdatePayload();
+
+  await ctx.window.handleLiveOperatorShortcut({
+    code: "Digit1",
+    ctrlKey: false,
+    altKey: false,
+    metaKey: false,
+    target: { tagName: "DIV" },
+    preventDefault: () => {},
+  });
+  const payload = hooks.getLastUpdatePayload();
+  assert.equal(payload.rounds[0].matches[0].score1, 1);
 });
 
 test("permite votar el mismo partido en torneos distintos", async () => {

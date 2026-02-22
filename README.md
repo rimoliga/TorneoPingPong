@@ -14,6 +14,7 @@ La app permite:
 - Iniciar torneo solo cuando todos los jugadores estén listos.
 - Gestionar partidos en vivo (sumar/restar puntos, finalizar match, notificaciones).
 - Mostrar estado claro de cierre en partido en vivo (si ya se puede finalizar o que falta).
+- Usar atajos de operador en partido en vivo (admin): `1/2` suma, `Q/W` resta, `Enter` finaliza, `Esc` cierra.
 - Ejecutar revisión tipo VAR (overlay visual).
 - Votar por ganador de partidos (1 voto por partido y por torneo).
 - Ver tabla de posiciones y métricas por jugador.

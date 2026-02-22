@@ -488,3 +488,25 @@ test("profileView renderiza modal y grilla de badges", async () => {
   assert.equal(doc.getElementById("profileModal").classList.contains("hidden"), false);
   assert.equal(doc.getElementById("badgesContainerCurrent").innerHTML.includes("X"), true);
 });
+
+test("operatorShortcutController resuelve atajos solo en contexto valido", async () => {
+  const shortcuts = await importModule("src/controllers/operatorShortcutController.js");
+  const baseEvent = { code: "Digit1", ctrlKey: false, altKey: false, metaKey: false, target: { tagName: "DIV" } };
+
+  assert.equal(
+    shortcuts.resolveOperatorShortcutAction(baseEvent, { isLiveModalOpen: true, isRoomAdmin: true }),
+    "p1_plus"
+  );
+  assert.equal(
+    shortcuts.resolveOperatorShortcutAction({ ...baseEvent, code: "Enter" }, { isLiveModalOpen: true, isRoomAdmin: true }),
+    "finish_match"
+  );
+  assert.equal(
+    shortcuts.resolveOperatorShortcutAction({ ...baseEvent, code: "Digit1", target: { tagName: "INPUT" } }, { isLiveModalOpen: true, isRoomAdmin: true }),
+    null
+  );
+  assert.equal(
+    shortcuts.resolveOperatorShortcutAction(baseEvent, { isLiveModalOpen: false, isRoomAdmin: true }),
+    null
+  );
+});
