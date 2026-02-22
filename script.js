@@ -3,7 +3,7 @@ import { initFirebaseServices } from "./src/services/firebase/firebaseClient.js"
 import { createRoom, patchRoom, subscribeRoom } from "./src/services/firebase/roomRepository.js";
 import { normalizeReadyPlayers } from "./src/domain/readyService.js";
 import { isWinningState, canFinalizeMatch, getWinnerByScore, getCloseMatchHint } from "./src/domain/scoringService.js";
-import { isClaimStaleForPlayer, canUseStoredIdentity, buildClaimPatch } from "./src/domain/identityService.js";
+import { isClaimStaleForPlayer, canUseStoredIdentity, buildClaimPatch, evaluateClaimStatus, getClaimBlockedMessage } from "./src/domain/identityService.js";
 import { buildMatchKey, resolveVoteScope, buildLocalVoteKey, canPlayerVoteMatch, buildNextVotes } from "./src/domain/votingService.js";
 import { buildToggleReadyUpdate, buildTournamentMatches, validateStartTournament, buildStartTournamentConfirmation } from "./src/controllers/roomController.js";
 import { applyRoundProgression } from "./src/controllers/matchController.js";
@@ -134,10 +134,11 @@ function checkIdentity() {
     else document.getElementById('adminAddPanel').classList.add('hidden');
     const list = document.getElementById('identityList'); list.innerHTML = '';
     gameState.players.forEach(p => {
-        const isClaimed = gameState.claims && gameState.claims[p] && gameState.claims[p] !== clientUUID && !isClaimStale(p);
+        const claimStatus = evaluateClaimStatus(p, gameState.players, gameState.claims, getClaimsMeta(), clientUUID, CLAIM_STALE_MS);
+        const isClaimed = !claimStatus.ok;
         const lockStyle = isClaimed ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:bg-slate-700/50 cursor-pointer hover:border-cyan-500/50';
         const icon = isClaimed ? '<i class="fas fa-lock text-red-400"></i>' : getAvatar(p, 32);
-        list.innerHTML += `<button onclick="claimIdentity('${p}')" ${isClaimed ? 'disabled' : ''} class="w-full flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/50 transition-all text-left ${lockStyle}">${icon}<span class="font-bold text-white">${p} ${isClaimed ? '(Ocupado)' : ''}</span></button>`;
+        list.innerHTML += `<button onclick="claimIdentity('${p}')" class="w-full flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/50 transition-all text-left ${lockStyle}">${icon}<span class="font-bold text-white">${p} ${isClaimed ? '(Ocupado)' : ''}</span></button>`;
     });
     return false;
 }
@@ -153,6 +154,8 @@ window.adminQuickAdd = async function () {
 }
 
 window.claimIdentity = async function (name) {
+    const claimStatus = evaluateClaimStatus(name, gameState.players, gameState.claims, getClaimsMeta(), clientUUID, CLAIM_STALE_MS);
+    if (!claimStatus.ok) return showToast(getClaimBlockedMessage(claimStatus), "error");
     localStorage.setItem(`p_pong_identity_${currentRoomId}`, name); setIdentity(name);
     const updateData = buildClaimPatch(name, clientUUID, true);
     await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, updateData); syncUI();
@@ -161,7 +164,11 @@ window.claimIdentity = async function (name) {
 window.registerNewIdentity = async function () {
     const name = document.getElementById('newIdentityInput').value.trim(); const nick = document.getElementById('newIdentityNick').value.trim();
     if (!name) return showToast("Escribe un nombre", "error");
-    if (gameState.players.includes(name)) return showToast("Nombre ocupado", "error");
+    if (gameState.players.includes(name)) {
+        const claimStatus = evaluateClaimStatus(name, gameState.players, gameState.claims, getClaimsMeta(), clientUUID, CLAIM_STALE_MS);
+        if (!claimStatus.ok) return showToast(getClaimBlockedMessage(claimStatus), "error");
+        return showToast("Ese nombre ya existe. Seleccionalo en la lista.", "error");
+    }
     const updateData = { players: arrayUnion(name) };
     if (nick) updateData[`playerMeta.${name}`] = { nickname: nick };
     Object.assign(updateData, buildClaimPatch(name, clientUUID, true));

@@ -50,6 +50,7 @@ La sala usa `claims` para reservar nombres. Para evitar bloqueos por desconexió
 - Hay heartbeat de claim (`claimsMeta.updatedAt`) cada 30s.
 - Si un claim queda stale (sin actualización por más de 2 minutos), puede recuperarse.
 - Si un usuario vuelve con identidad guardada en `localStorage`, la app intenta re-claim automático.
+- Si un nombre está ocupado, la UI muestra mensaje claro y tiempo estimado de reintento.
 
 ## 5. Requisitos técnicos
 

@@ -105,6 +105,30 @@ test("identityService evalua stale claim y claim patch", async () => {
   assert.equal(patch["claims.A"], "me");
   assert.equal(patch["claimsMeta.A"].updatedAt, now);
   assert.equal(patch["readyPlayers.A"], false);
+
+  const occupiedStatus = identity.evaluateClaimStatus(
+    "A",
+    ["A"],
+    { A: "other-client" },
+    { A: { updatedAt: now - 1000 } },
+    "me",
+    120000,
+    now
+  );
+  assert.equal(occupiedStatus.ok, false);
+  assert.equal(occupiedStatus.reason, "occupied");
+  assert.equal(identity.getClaimBlockedMessage(occupiedStatus).includes("Nombre ocupado"), true);
+
+  const staleStatus = identity.evaluateClaimStatus(
+    "A",
+    ["A"],
+    { A: "other-client" },
+    { A: { updatedAt: now - 130000 } },
+    "me",
+    120000,
+    now
+  );
+  assert.equal(staleStatus.ok, true);
 });
 
 test("votingService arma keys y acumula votos", async () => {
