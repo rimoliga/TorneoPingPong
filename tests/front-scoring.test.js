@@ -125,6 +125,12 @@ window.__TEST_HOOKS__ = {
       Math.abs(score1 - score2) >= 2,
     getWinnerByScore: (p1, p2, score1, score2) =>
       score1 === score2 ? null : score1 > score2 ? p1 : p2,
+    getCloseMatchHint: (score1, score2, targetScore) => {
+      const target = targetScore || 11;
+      const canClose = Math.max(score1, score2) >= target && Math.abs(score1 - score2) >= 2;
+      if (canClose) return { canClose: true, text: "Listo para finalizar el partido" };
+      return { canClose: false, text: "Faltan puntos para cerrar" };
+    },
     buildToggleReadyUpdate: (currentUserIdentity, readyPlayers) => {
       if (!currentUserIdentity) {
         return { ok: false, error: "Primero elige tu identidad" };

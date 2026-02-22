@@ -2,7 +2,7 @@ import { arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-f
 import { initFirebaseServices } from "./src/services/firebase/firebaseClient.js";
 import { createRoom, patchRoom, subscribeRoom } from "./src/services/firebase/roomRepository.js";
 import { normalizeReadyPlayers } from "./src/domain/readyService.js";
-import { isWinningState, canFinalizeMatch, getWinnerByScore } from "./src/domain/scoringService.js";
+import { isWinningState, canFinalizeMatch, getWinnerByScore, getCloseMatchHint } from "./src/domain/scoringService.js";
 import { isClaimStaleForPlayer, canUseStoredIdentity, buildClaimPatch } from "./src/domain/identityService.js";
 import { buildMatchKey, resolveVoteScope, buildLocalVoteKey, canPlayerVoteMatch, buildNextVotes } from "./src/domain/votingService.js";
 import { buildToggleReadyUpdate, buildTournamentMatches, validateStartTournament, buildStartTournamentConfirmation } from "./src/controllers/roomController.js";
@@ -382,7 +382,7 @@ function renderFeaturedMatch() {
 
 window.openLiveMatch = function (rIdx, mIdx) { const match = gameState.rounds[rIdx].matches[mIdx]; if (match.isBye) return; liveMatchIndices = { rIdx, mIdx }; renderLiveMatchHeader({ documentRef: document, match, getAvatar, playerMeta: gameState.playerMeta }); updateLiveMatchUI(match); document.getElementById('liveMatchModal').classList.remove('hidden'); }
 window.closeLiveMatch = function () { document.getElementById('liveMatchModal').classList.add('hidden'); liveMatchIndices = null; }
-function updateLiveMatchUI(match) { const target = gameState.targetScore || 11; const { shouldCelebrate } = renderLiveMatchState({ documentRef: document, match, liveMatchIndices, currentRoomId, votesByMatch: gameState.votes, currentUserIdentity, targetScore: target, isWinningState }); if (shouldCelebrate) confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } }); }
+function updateLiveMatchUI(match) { const target = gameState.targetScore || 11; const { shouldCelebrate } = renderLiveMatchState({ documentRef: document, match, liveMatchIndices, currentRoomId, votesByMatch: gameState.votes, currentUserIdentity, targetScore: target, isWinningState, getCloseMatchHint }); if (shouldCelebrate) confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } }); }
 window.voteFor = async function (rIdx, mIdx, playerNum) { let r = rIdx, m = mIdx, p = playerNum; if (arguments.length === 1) { if (!liveMatchIndices) return; r = liveMatchIndices.rIdx; m = liveMatchIndices.mIdx; p = arguments[0]; } const match = gameState.rounds[r].matches[m]; if (!canPlayerVoteMatch(match, currentUserIdentity)) return showToast("No puedes votar en tu propio partido", "error"); const matchKey = buildMatchKey(currentRoomId, r, m); const voteScope = resolveVoteScope(gameState.activeSince, gameState.createdAt); const localVoteKey = buildLocalVoteKey(matchKey, voteScope); if (localStorage.getItem(localVoteKey)) return showToast("Ya votaste en este partido", "error"); const votes = buildNextVotes(gameState.votes, matchKey, p); await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { votes: votes }); localStorage.setItem(localVoteKey, "true"); showToast("Voto registrado!"); playSound('ping', 0.05); }
 window.toggleReady = async function () {
     const result = buildToggleReadyUpdate(currentUserIdentity, getReadyPlayers());

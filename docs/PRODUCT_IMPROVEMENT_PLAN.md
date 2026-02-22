@@ -41,6 +41,7 @@ Roadmap de mejoras para uso propio entre amigos.
 ### Avances recientes
 
 - 2026-02-22: confirmacion visual previa al sorteo (`SORTEAR`) implementada.
+- 2026-02-22: estado textual en vivo para indicar cuando un partido se puede cerrar y que falta para finalizar.
 
 ## Fase 2: Features Sociales Y Divertidas (Alta Prioridad)
 

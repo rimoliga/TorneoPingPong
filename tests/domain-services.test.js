@@ -32,6 +32,11 @@ test("scoringService aplica reglas de victoria y ganador", async () => {
   assert.equal(scoring.getWinnerByScore("A", "B", 11, 9), "A");
   assert.equal(scoring.getWinnerByScore("A", "B", 7, 9), "B");
   assert.equal(scoring.getWinnerByScore("A", "B", 9, 9), null);
+  assert.equal(
+    scoring.getCloseMatchHint(9, 7, 11).text.includes("Faltan 2 punto(s)"),
+    true
+  );
+  assert.equal(scoring.getCloseMatchHint(11, 9, 11).canClose, true);
 });
 
 test("roomController valida readiness y arma partidos", async () => {
@@ -254,9 +259,14 @@ test("liveMatchView renderiza header y estado", async () => {
     currentUserIdentity: "viewer",
     targetScore: 11,
     isWinningState: (s1, s2, target) => Math.max(s1, s2) >= target && Math.abs(s1 - s2) >= 2,
+    getCloseMatchHint: (s1, s2, target) => ({
+      canClose: s1 >= target && s1 - s2 >= 2,
+      text: s1 >= target && s1 - s2 >= 2 ? "Listo para finalizar el partido" : "Falta score",
+    }),
   });
   assert.equal(out.shouldCelebrate, true);
   assert.equal(doc.getElementById("liveFinishBtnContainer").classList.contains("hidden"), false);
+  assert.equal(doc.getElementById("liveCloseHint").textContent, "Listo para finalizar el partido");
 });
 
 test("bootstrap resuelve config y conecta firebase", async () => {

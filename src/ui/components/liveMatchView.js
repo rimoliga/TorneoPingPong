@@ -17,6 +17,7 @@ export function renderLiveMatchState({
     currentUserIdentity,
     targetScore,
     isWinningState,
+    getCloseMatchHint,
 }) {
     if (!documentRef || !match || !liveMatchIndices) return { shouldCelebrate: false };
     documentRef.getElementById("liveP1Score").textContent = match.score1;
@@ -52,9 +53,21 @@ export function renderLiveMatchState({
     }
 
     const finishBtn = documentRef.getElementById("liveFinishBtnContainer");
+    const closeHint = documentRef.getElementById("liveCloseHint");
     const shouldCelebrate = isWin && !match.winner;
     if (shouldCelebrate) finishBtn.classList.remove("hidden");
     else finishBtn.classList.add("hidden");
+    if (closeHint && typeof getCloseMatchHint === "function") {
+        const hint = getCloseMatchHint(match.score1, match.score2, targetScore);
+        closeHint.textContent = hint.text;
+        if (hint.canClose) {
+            closeHint.classList.add("text-emerald-300");
+            closeHint.classList.remove("text-slate-400");
+        } else {
+            closeHint.classList.add("text-slate-400");
+            closeHint.classList.remove("text-emerald-300");
+        }
+    }
 
     const totalPoints = match.score1 + match.score2;
     const maxScore = Math.max(match.score1, match.score2);
