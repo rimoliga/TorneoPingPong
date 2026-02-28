@@ -562,7 +562,8 @@ window.openQrModal = function () {
     const label = document.getElementById('qrRoomCode');
     if (!modal || !canvas || typeof QRCode === 'undefined') return showToast("QR no disponible", "error");
     const url = `${location.origin}${location.pathname}?room=${currentRoomId}`;
-    QRCode.toCanvas(canvas, url, { width: 200, margin: 2, color: { dark: '#0f172a', light: '#e2e8f0' } });
+    canvas.innerHTML = '';
+    new QRCode(canvas, { text: url, width: 200, height: 200, colorDark: '#0f172a', colorLight: '#e2e8f0' });
     label.textContent = `SALA: ${currentRoomId}`;
     modal.classList.remove('hidden');
 }

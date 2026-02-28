@@ -11,7 +11,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&family=Bangers&display=swap');
 
@@ -793,7 +793,7 @@
         <div class="bg-slate-900 border border-cyan-500/30 rounded-2xl p-6 max-w-xs w-full text-center shadow-2xl" onclick="event.stopPropagation()">
             <h3 class="text-sm font-bold text-cyan-400 mb-1 uppercase tracking-wider">Unirse a la sala</h3>
             <p class="text-[10px] text-slate-400 mb-4">Escanea el QR con tu celular</p>
-            <canvas id="qrCanvas" class="mx-auto rounded-lg"></canvas>
+            <div id="qrCanvas" class="mx-auto rounded-lg inline-block"></div>
             <p class="text-xs text-white font-mono font-bold mt-3" id="qrRoomCode"></p>
             <button onclick="closeQrModal()" class="mt-4 text-xs text-slate-400 hover:text-white border border-slate-600 px-4 py-1 rounded-full">Cerrar</button>
         </div>
