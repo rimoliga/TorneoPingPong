@@ -40,10 +40,15 @@ let claimHeartbeatInterval = null;
 localStorage.setItem('p_pong_client_id', clientUUID);
 const CLAIM_STALE_MS = 2 * 60 * 1000;
 const CLAIM_HEARTBEAT_MS = 30 * 1000;
+const MAX_PLAYER_NAME_LENGTH = 20;
+const _urlParams = (() => { try { return (typeof URLSearchParams !== 'undefined' && typeof location !== 'undefined') ? new URLSearchParams(location.search) : { get: () => null }; } catch (_) { return { get: () => null }; } })();
+const tvMode = _urlParams.get('mode') === 'tv';
+const urlRoomCode = (_urlParams.get('room') || '').toUpperCase() || null;
 
 let gameState = { tournamentName: "Torneo sin nombre", targetScore: 11, players: [], playerMeta: {}, claims: {}, claimsMeta: {}, rounds: [], votes: {}, varTrigger: 0, active: false, champion: null, globalStats: {}, readyPlayers: {}, creatorName: null, themePreset: "arcade" };
 
 // --- UTILS DECLARATIONS ---
+function escapeForOnclick(str) { return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 function getAvatar(name, size = 24) { const seed = name.replace(/\s/g, ''); const url = `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${seed}&backgroundColor=transparent`; return `<img src="${url}" width="${size}" height="${size}" class="rounded-full bg-white/10 avatar-img" alt="${name}">`; }
 
 function showToast(msg, type) {
@@ -83,6 +88,11 @@ async function initApp() {
     if (!connected) return;
     ({ app, auth, db } = connected);
     window.DB_PATH_PREFIX = connected.dbPathPrefix;
+    if (urlRoomCode) enterRoom(urlRoomCode);
+    if (tvMode) {
+        const badge = document.getElementById('tvModeBadge');
+        if (badge) badge.classList.remove('hidden');
+    }
 }
 function updateStatus(msg, colorClass) { const el = document.getElementById('connectionStatus'); if (el) { el.innerHTML = `<i class="fas fa-wifi"></i> ${msg}`; el.className = `text-xs font-mono ${colorClass}`; } }
 function getReadyPlayers() {
@@ -131,6 +141,10 @@ function startClaimHeartbeat(name) {
 }
 
 function checkIdentity() {
+    if (tvMode) {
+        document.getElementById('identitySection').classList.add('hidden');
+        return true;
+    }
     const storedName = localStorage.getItem(`p_pong_identity_${currentRoomId}`);
     const canUseStored = canUseStoredIdentity(storedName, gameState.players, gameState.claims, getClaimsMeta(), clientUUID, CLAIM_STALE_MS);
     if (canUseStored) {
@@ -149,7 +163,7 @@ function checkIdentity() {
         const isClaimed = !claimStatus.ok;
         const lockStyle = isClaimed ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:bg-slate-700/50 cursor-pointer hover:border-cyan-500/50';
         const icon = isClaimed ? '<i class="fas fa-lock text-red-400"></i>' : getAvatar(p, 32);
-        list.innerHTML += `<button onclick="claimIdentity('${p}')" class="w-full flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/50 transition-all text-left ${lockStyle}">${icon}<span class="font-bold text-white">${p} ${isClaimed ? '(Ocupado)' : ''}</span></button>`;
+        list.innerHTML += `<button onclick="claimIdentity('${escapeForOnclick(p)}')" class="w-full flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/50 transition-all text-left ${lockStyle}">${icon}<span class="font-bold text-white">${p} ${isClaimed ? '(Ocupado)' : ''}</span></button>`;
     });
     return false;
 }
@@ -157,6 +171,7 @@ function checkIdentity() {
 window.adminQuickAdd = async function () {
     const name = document.getElementById('adminAddInput').value.trim(); const nick = document.getElementById('adminNickInput').value.trim();
     if (!name) return showToast("Escribe un nombre", "error");
+    if (name.length > MAX_PLAYER_NAME_LENGTH) return showToast(`Nombre máximo ${MAX_PLAYER_NAME_LENGTH} caracteres`, "error");
     if (gameState.players.includes(name)) return showToast("Nombre ocupado", "error");
     const updateData = { players: arrayUnion(name) };
     if (nick) updateData[`playerMeta.${name}`] = { nickname: nick };
@@ -175,6 +190,7 @@ window.claimIdentity = async function (name) {
 window.registerNewIdentity = async function () {
     const name = document.getElementById('newIdentityInput').value.trim(); const nick = document.getElementById('newIdentityNick').value.trim();
     if (!name) return showToast("Escribe un nombre", "error");
+    if (name.length > MAX_PLAYER_NAME_LENGTH) return showToast(`Nombre máximo ${MAX_PLAYER_NAME_LENGTH} caracteres`, "error");
     if (gameState.players.includes(name)) {
         const claimStatus = evaluateClaimStatus(name, gameState.players, gameState.claims, getClaimsMeta(), clientUUID, CLAIM_STALE_MS);
         if (!claimStatus.ok) return showToast(getClaimBlockedMessage(claimStatus), "error");
@@ -221,6 +237,7 @@ window.saveProfileChanges = async function () {
     const newName = document.getElementById('editNameInput').value.trim();
     const newNick = document.getElementById('editNickInput').value.trim();
     if (!newName) return showToast("Nombre vacio", "error");
+    if (newName.length > MAX_PLAYER_NAME_LENGTH) return showToast(`Nombre máximo ${MAX_PLAYER_NAME_LENGTH} caracteres`, "error");
     const oldName = currentUserIdentity;
     const updates = {};
     updates[`playerMeta.${newName}`] = { nickname: newNick };
@@ -272,7 +289,36 @@ window.showProfileModal = function (playerName) {
     const badgeSets = getProfileBadgeSets(perf, gStats);
     renderBadgeGrid(document, "badgesContainerCurrent", badgeSets.currentBadges);
     renderBadgeGrid(document, "badgesContainerGlobal", badgeSets.globalBadges);
+    renderH2HSection(p);
     window.switchProfileTab('current');
+}
+
+function renderH2HSection(playerName) {
+    const section = document.getElementById('h2hSection');
+    const list = document.getElementById('h2hList');
+    if (!section || !list) return;
+    const h2h = {};
+    (gameState.rounds || []).forEach(r => {
+        (r.matches || []).forEach(m => {
+            if (m.isBye || !m.winner || (!m.p1 && !m.p2)) return;
+            if (m.p1 === playerName || m.p2 === playerName) {
+                const opp = m.p1 === playerName ? m.p2 : m.p1;
+                if (!opp) return;
+                if (!h2h[opp]) h2h[opp] = { won: 0, lost: 0 };
+                if (m.winner === playerName) h2h[opp].won++; else h2h[opp].lost++;
+            }
+        });
+    });
+    const entries = Object.entries(h2h);
+    if (entries.length === 0) { section.classList.add('hidden'); return; }
+    section.classList.remove('hidden');
+    list.innerHTML = '';
+    entries.forEach(([opp, rec]) => {
+        const total = rec.won + rec.lost;
+        const pct = total === 0 ? 50 : Math.round((rec.won / total) * 100);
+        const color = rec.won > rec.lost ? 'text-emerald-400' : rec.won < rec.lost ? 'text-red-400' : 'text-slate-400';
+        list.innerHTML += `<div class="flex items-center justify-between bg-slate-800/30 rounded px-2 py-1"><div class="flex items-center gap-2 text-xs">${getAvatar(opp, 20)}<span class="clickable-name" onclick="showProfileModal('${escapeForOnclick(opp)}')">${opp}</span></div><span class="font-mono font-bold text-xs ${color}">${rec.won}–${rec.lost} <span class="text-slate-500">(${pct}%)</span></span></div>`;
+    });
 }
 window.closeProfileModal = function () { document.getElementById('profileModal').classList.add('hidden'); }
 
@@ -295,7 +341,16 @@ window.confirmReset = async function () {
         initStat(gameState.champion);
         newStats[gameState.champion].tourneys++;
     }
-    await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { active: false, rounds: [], champion: null, votes: {}, claims: {}, claimsMeta: {}, globalStats: newStats, activeSince: null, readyPlayers: {} });
+    const historyEntry = {
+        date: new Date().toISOString(),
+        name: gameState.tournamentName || "Torneo",
+        champion: gameState.champion || null,
+        players: [...(gameState.players || [])],
+        targetScore: gameState.targetScore || 11,
+    };
+    const prevHistory = Array.isArray(gameState.tournamentHistory) ? gameState.tournamentHistory : [];
+    const newHistory = [...prevHistory, historyEntry].slice(-10);
+    await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { active: false, rounds: [], champion: null, votes: {}, claims: {}, claimsMeta: {}, globalStats: newStats, activeSince: null, readyPlayers: {}, tournamentHistory: newHistory });
     closeResetModal();
     closeLiveMatch();
 }
@@ -366,7 +421,7 @@ function exitRoom() { stopClaimHeartbeat(); currentRoomId = null; currentUserIde
 function syncUI() {
     if (!currentUserIdentity) { if (!checkIdentity()) return; }
     applyRoomTheme();
-    if (gameState.tournamentName) document.getElementById('mainTitle').innerHTML = gameState.tournamentName.toUpperCase().replace(' ', '<br>');
+    if (gameState.tournamentName) document.getElementById('mainTitle').innerHTML = gameState.tournamentName.toUpperCase().replaceAll(' ', '<br>');
     const target = gameState.targetScore || 11; document.getElementById('rulesDisplay').textContent = `A ${target} Puntos`;
 
     const isCreator = isRoomAdmin();
@@ -394,7 +449,7 @@ function syncUI() {
 }
 
 window.callToPlay = async function (rIdx, mIdx) { const rounds = JSON.parse(JSON.stringify(gameState.rounds)); rounds[rIdx].matches[mIdx].status = 'ready'; await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { rounds }); showToast("Jugadores llamados!"); }
-function checkMyTurn() { if (!currentUserIdentity || !gameState.active) return; const nextIds = collectMyTurnNotifications(gameState.rounds, currentUserIdentity, notifiedMatches); if (nextIds.length > 0) { nextIds.forEach(id => notifiedMatches.add(id)); showNotificationOverlay(); } }
+function checkMyTurn() { if (tvMode || !currentUserIdentity || !gameState.active) return; const nextIds = collectMyTurnNotifications(gameState.rounds, currentUserIdentity, notifiedMatches); if (nextIds.length > 0) { nextIds.forEach(id => notifiedMatches.add(id)); showNotificationOverlay(); } }
 function showNotificationOverlay() { showNotificationOverlayView(document, navigator, playSound); }
 window.closeNotification = function () { document.getElementById('notificationOverlay').classList.add('hidden'); }
 function checkForNewWinners(newRounds) { const winners = detectNewWinners(previousRounds, newRounds); winners.forEach((winner) => showToast(`${winner} gano su partido!`)); if (winners.length > 0) { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); playSound('win', 0.3); } }
@@ -424,9 +479,9 @@ window.toggleReady = async function () {
     if (!result.ok) return showToast(result.error, "error");
     await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { readyPlayers: result.nextReadyPlayers });
 };
-window.liveScore = async function (playerNum, delta) { if (!liveMatchIndices) return; const { rIdx, mIdx } = liveMatchIndices; const rounds = JSON.parse(JSON.stringify(gameState.rounds)); const match = rounds[rIdx].matches[mIdx]; if (match.winner && delta > 0) return; if (match.winner && delta < 0) { match.winner = null; if (rounds.length === rIdx + 1) gameState.champion = null; } const target = gameState.targetScore || 11; const isAlreadyWon = isWinningState(match.score1, match.score2, target); if (delta > 0 && isAlreadyWon && !match.winner) return; let newVal = (playerNum === 1 ? match.score1 : match.score2) + delta; if (newVal < 0) newVal = 0; if (playerNum === 1) match.score1 = newVal; else match.score2 = newVal; if (delta > 0) playSound('ping'); await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { rounds, champion: gameState.champion }); }
+window.liveScore = async function (playerNum, delta) { if (!liveMatchIndices) return; const { rIdx, mIdx } = liveMatchIndices; const rounds = JSON.parse(JSON.stringify(gameState.rounds)); const match = rounds[rIdx].matches[mIdx]; if (match.winner && delta > 0) return; if (match.winner && delta < 0) { match.winner = null; rounds.splice(rIdx + 1); gameState.champion = null; } const target = gameState.targetScore || 11; const isAlreadyWon = isWinningState(match.score1, match.score2, target); if (delta > 0 && isAlreadyWon && !match.winner) return; let newVal = (playerNum === 1 ? match.score1 : match.score2) + delta; if (newVal < 0) newVal = 0; if (playerNum === 1) match.score1 = newVal; else match.score2 = newVal; if (delta > 0) playSound('ping'); await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { rounds, champion: gameState.champion }); }
 window.finishLiveMatch = function () { if (!liveMatchIndices) return; finishMatch(liveMatchIndices.rIdx, liveMatchIndices.mIdx); closeLiveMatch(); }
-window.addPlayer = async function () { const name = document.getElementById('playerInput').value.trim(); const nick = document.getElementById('playerNickInput').value.trim(); if (!name || gameState.players.includes(name)) return; const updateData = { players: arrayUnion(name) }; if (nick) updateData[`playerMeta.${name}`] = { nickname: nick }; updateData[`readyPlayers.${name}`] = false; await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, updateData); document.getElementById('playerInput').value = ''; document.getElementById('playerNickInput').value = ''; playSound('ping'); }
+window.addPlayer = async function () { const name = document.getElementById('playerInput').value.trim(); const nick = document.getElementById('playerNickInput').value.trim(); if (!name || gameState.players.includes(name)) return; if (name.length > MAX_PLAYER_NAME_LENGTH) return showToast(`Nombre máximo ${MAX_PLAYER_NAME_LENGTH} caracteres`, "error"); const updateData = { players: arrayUnion(name) }; if (nick) updateData[`playerMeta.${name}`] = { nickname: nick }; updateData[`readyPlayers.${name}`] = false; await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, updateData); document.getElementById('playerInput').value = ''; document.getElementById('playerNickInput').value = ''; playSound('ping'); }
 window.removePlayer = async function (idx) { const newP = [...gameState.players]; const removed = newP[idx]; newP.splice(idx, 1); const readyPlayers = { ...getReadyPlayers() }; const claims = { ...(gameState.claims || {}) }; const claimsMeta = { ...getClaimsMeta() }; delete readyPlayers[removed]; delete claims[removed]; delete claimsMeta[removed]; await patchRoom(db, window.DB_PATH_PREFIX, currentRoomId, { players: newP, readyPlayers, claims, claimsMeta }); }
 
 window.startTournament = async function () {
@@ -475,12 +530,43 @@ function getPlayerBadges(name) {
 
 window.showStatsModal = function () { document.getElementById('statsModal').classList.remove('hidden'); calculateAndRenderStats(); }
 window.closeStatsModal = function () { document.getElementById('statsModal').classList.add('hidden'); }
+window.showHistoryModal = function () {
+    const modal = document.getElementById('historyModal');
+    const list = document.getElementById('historyList');
+    if (!modal || !list) return;
+    const history = Array.isArray(gameState.tournamentHistory) ? gameState.tournamentHistory : [];
+    if (history.length === 0) {
+        list.innerHTML = '<p class="text-slate-500 text-xs text-center py-4">Aún no hay torneos completados.</p>';
+    } else {
+        list.innerHTML = '';
+        [...history].reverse().forEach((entry) => {
+            const date = entry.date ? new Date(entry.date).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+            const champHtml = entry.champion ? `<span class="text-yellow-400 font-bold">${entry.champion} 🏆</span>` : '<span class="text-slate-500">Sin campeón</span>';
+            list.innerHTML += `<div class="bg-slate-800/40 rounded-lg px-3 py-2 border border-slate-700/30"><div class="flex justify-between items-center"><span class="text-xs font-bold text-white truncate">${entry.name || 'Torneo'}</span><span class="text-[10px] text-slate-500 ml-2 shrink-0">${date}</span></div><div class="text-xs mt-1">${champHtml}</div><div class="text-[10px] text-slate-500 mt-0.5">${(entry.players || []).length} jugadores · A ${entry.targetScore || '?'} puntos</div></div>`;
+        });
+    }
+    modal.classList.remove('hidden');
+}
+window.closeHistoryModal = function () { document.getElementById('historyModal').classList.add('hidden'); }
 function calculateAndRenderStats() {
     const sortedStats = calculateTournamentStats(gameState.players, gameState.rounds);
     const tbody = document.getElementById('statsTableBody'); tbody.innerHTML = '';
     sortedStats.forEach((s, i) => { const isLeader = i === 0 && s.won > 0; const rowClass = isLeader ? 'bg-yellow-500/20 text-yellow-200' : 'border-b border-slate-700/30 text-slate-300'; const isMe = s.name === currentUserIdentity; tbody.innerHTML += `<tr class="${rowClass}"> <td class="py-2 pl-2 font-mono text-slate-500/70">${i + 1}</td> <td class="py-2 flex items-center gap-2 clickable-name" onclick="showProfileModal('${s.name}')">${getAvatar(s.name, 24)} <span class="${isLeader ? 'font-bold' : ''} ${isMe ? 'me-highlight' : ''}">${s.name}</span></td> <td class="py-2 text-center font-mono">${s.played}</td> <td class="py-2 text-center font-mono font-bold">${s.won}</td> <td class="py-2 text-center font-mono text-xs ${s.diff > 0 ? 'text-green-400' : 'text-red-400'}">${s.diff > 0 ? '+' : ''}${s.diff}</td> </tr>`; });
 }
 window.copyRoomCode = function () { const code = document.getElementById('roomCodeDisplay').textContent; navigator.clipboard.writeText(code).then(() => showToast("Codigo copiado!")); }
+window.openTvMode = function () { if (!currentRoomId) return; const url = `${location.origin}${location.pathname}?room=${currentRoomId}&mode=tv`; window.open(url, '_blank'); }
+window.openQrModal = function () {
+    if (!currentRoomId) return;
+    const modal = document.getElementById('qrModal');
+    const canvas = document.getElementById('qrCanvas');
+    const label = document.getElementById('qrRoomCode');
+    if (!modal || !canvas || typeof QRCode === 'undefined') return showToast("QR no disponible", "error");
+    const url = `${location.origin}${location.pathname}?room=${currentRoomId}`;
+    QRCode.toCanvas(canvas, url, { width: 200, margin: 2, color: { dark: '#0f172a', light: '#e2e8f0' } });
+    label.textContent = `SALA: ${currentRoomId}`;
+    modal.classList.remove('hidden');
+}
+window.closeQrModal = function () { document.getElementById('qrModal').classList.add('hidden'); }
 window.openTournamentNameEditor = function () {
     if (!isRoomAdmin()) return showToast("Solo el creador puede cambiar el nombre del torneo", "error");
     const panel = document.getElementById("editTournamentPanel");
@@ -579,7 +665,7 @@ function renderPlayerList() {
     gameState.players.forEach((p, i) => {
         const nick = gameState.playerMeta[p]?.nickname || ""; const isMe = p === currentUserIdentity; const isCreator = isRoomAdmin(); const removeBtn = isCreator ? `<button onclick="removePlayer(${i})" class="text-red-400 hover:bg-red-500/20 p-1 rounded"><i class="fas fa-times"></i></button>` : '';
         const readyBadge = readyPlayers[p] ? '<span class="text-[10px] text-emerald-300 border border-emerald-400/40 px-1 py-0.5 rounded">LISTO</span>' : '<span class="text-[10px] text-slate-400 border border-slate-600/40 px-1 py-0.5 rounded">PENDIENTE</span>';
-        list.innerHTML += `<li class="flex justify-between items-center bg-slate-800/40 px-3 py-2 rounded border border-blue-900/50 animate-fade-in"><div><span class="text-white font-medium flex items-center gap-2 clickable-name" onclick="showProfileModal('${p}')">${getAvatar(p, 32)} <span class="${isMe ? 'me-highlight' : ''}">${p}</span> ${readyBadge}</span>${nick ? `<div class="text-[10px] text-slate-400 italic ml-10">${nick}</div>` : ''}</div>${removeBtn}</li>`;
+        list.innerHTML += `<li class="flex justify-between items-center bg-slate-800/40 px-3 py-2 rounded border border-blue-900/50 animate-fade-in"><div><span class="text-white font-medium flex items-center gap-2 clickable-name" onclick="showProfileModal('${escapeForOnclick(p)}')">${getAvatar(p, 32)} <span class="${isMe ? 'me-highlight' : ''}">${p}</span> ${readyBadge}</span>${nick ? `<div class="text-[10px] text-slate-400 italic ml-10">${nick}</div>` : ''}</div>${removeBtn}</li>`;
     });
     renderSetupReadiness({
         players: gameState.players,
